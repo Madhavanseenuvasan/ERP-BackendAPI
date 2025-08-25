@@ -1,39 +1,39 @@
 const mongoose = require('mongoose');
 
-const ServiceSchema = new mongoose.Schema({
-  title: {
-    type: String,
-    required: true
-  },
-  description: String,
-  status: {
-    type: String,
-    enum: ['Open', 'In-Progress', 'Resolved'],
-    default: 'Open'
-  },
-  userId: { 
-    type: mongoose.Schema.Types.ObjectId, 
-    ref: 'User' 
-  },
-  assignedEngineer:{
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'User'
-  },
-  clientFeedback: String,
-  createdAt: { 
-    type: Date, 
-    default: Date.now 
-  },
-  slaHours: { 
-    type: Number 
-  },
-  slaBreached: { 
-  type: Boolean, 
-  default: false 
-  },
-  assignedAt: Date,
-  resolvedAt: Date
+const ticketSchema = new mongoose.Schema({
+    ticketNumber: { type: String, required: true, unique: true },
+    customerName: { type: String, required: true },
+    customerPhone: String,
+    customerEmail: String,
+    customerAddress: String,
+    serviceType: { type: String, required: true },
+    description: String,
+    priority: { type: String, enum: ['Low', 'Medium', 'High', 'Critical'], default: 'Medium' },
+    status: { type: String, enum: ['Open', 'In Progress', 'Resolved', 'Cancelled', 'Closed'], default: 'Open' },
+    assignedTo: String,
+    createdAt: { type: Date, default: Date.now },
+    scheduledDate: Date,
+    serviceRequiredDate: Date,
+    completionDate: Date,
+    engineSerialNumber: String,
+    magiecCode: String,
+    siteId: String,
+    siteLocation: String,
+    stateName: String,
+    vertical: String,
+    invoiceRaised: { type: Boolean, default: false },
+    serviceCharge: Number,
+    product: String,
+    workCompleted: String,
+    partsUsed: [{ partName: String, quantity: Number, serialNumber: String }],
+    recommendations: String,
+    customerFeedback: String,
+    serviceQuality: String,
+    customerSatisfaction: Number, 
+    technicianSignature: String,
+    customerSignature: String,
+    photos: [String],      
+    attachments: [String], 
 });
 
-const serviceModel = mongoose.model('ServiceManagement', ServiceSchema);
-module.exports = serviceModel;
+module.exports = mongoose.model('Ticket', ticketSchema);

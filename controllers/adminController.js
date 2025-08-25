@@ -1,189 +1,283 @@
-const AdminSettings = require("../models/adminModel");
+const {
+  GeneralSettings,
+  EmailSettings,
+  SMSSettings,
+  WhatsAppSettings,
+  SecuritySettings,
+  SystemSettings,
+  AuditLogs
+} = require("../models/adminModel");
 
-const getSettingsDoc = async () => {
-  let settings = await AdminSettings.findOne();
-  if (!settings) {
-    settings = await AdminSettings.create({});
+exports.createGeneral = async (req, res) => {
+  try {
+    const settings = new GeneralSettings(req.body);
+    await settings.save();
+    res.status(201).json(settings);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
   }
-  return settings;
 };
 
-// ===== GENERAL =====
-exports.createGeneral = async (req, res) => {
-  const settings = new AdminSettings({
-    companyName: req.body.companyName,
-    companyAddress: req.body.companyAddress,
-    companyPAN: req.body.companyPAN,
-    contactPhone: req.body.contactPhone,
-    contactEmail: req.body.contactEmail,
-    bankAccountNumber: req.body.bankAccountNumber,
-    bankName: req.body.bankName,
-    bankIFSC: req.body.bankIFSC,
-    lastModifiedBy: req.body.lastModifiedBy
-  });
-  await settings.save();
-  res.status(201).json({ message: "General settings created", settings });
-}
+exports.getGeneral = async (req, res) => {
+  try {
+    const settings = await GeneralSettings.find();
+    res.json(settings);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+exports.getGeneralById = async (req, res) => {
+  try {
+    const settings = await GeneralSettings.findById(req.params.id);
+    if (!settings) return res.status(404).json({ message: "General settings not found" });
+    res.json(settings);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
 
 exports.updateGeneral = async (req, res) => {
-  const settings = await getSettingsDoc();
-  Object.assign(settings, req.body);
-  await settings.save();
-  res.status(200).json({ message: "General settings updated", settings });
-}
-exports.getGeneral = async (req, res) => {
-  const settings = await getSettingsDoc();
-  const { companyName, companyAddress, companyPAN, contactPhone, contactEmail, bankAccountNumber, bankName, bankIFSC } = settings;
-  res.status(200).json({ companyName, companyAddress, companyPAN, contactPhone, contactEmail, bankAccountNumber, bankName, bankIFSC });
-}
-// ===== EMAIL =====
-exports.createEmail = async (req, res) => {
-  const settings = new AdminSettings({
-    smtpHost: req.body.smtpHost,
-    smtpPort: req.body.smtpPort,
-    smtpUser: req.body.smtpUser,
-    smtpPass: req.body.smtpPass,
-    fromName: req.body.fromName,
-    fromEmail: req.body.fromEmail,
-    lastModifiedBy: req.body.lastModifiedBy
-  });
-  await settings.save();
-  res.status(201).json({ message: "Email settings created", settings });
-}
-exports.updateEmail = async (req, res) => {
-  const settings = await getSettingsDoc();
-  Object.assign(settings, req.body);
-  await settings.save();
-  res.status(200).json({ message: "Email settings updated", settings });
-}
-exports.getEmail = async (req, res) => {
-  const settings = await getSettingsDoc();
-  const { smtpHost, smtpPort, smtpUser, smtpPass, fromName, fromEmail } = settings;
-  res.status(200).json({ smtpHost, smtpPort, smtpUser, smtpPass, fromName, fromEmail });
-}
+  try {
+    const settings = await GeneralSettings.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    if (!settings) return res.status(404).json({ message: "General settings not found" });
+    res.json(settings);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
 
-// ===== SMS =====
+exports.createEmail = async (req, res) => {
+  try {
+    const settings = new EmailSettings(req.body);
+    await settings.save();
+    res.status(201).json(settings);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+exports.getEmail = async (req, res) => {
+  try {
+    const settings = await EmailSettings.find();
+    console.log("hello world");
+    res.json(settings);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+exports.getEmailById = async (req, res) => {
+  try {
+    const settings = await EmailSettings.findById(req.params.id);
+    if (!settings) return res.status(404).json({ message: "Email settings not found" });
+    res.json(settings);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+exports.updateEmail = async (req, res) => {
+  try {
+    const settings = await EmailSettings.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    if (!settings) return res.status(404).json({ message: "Email settings not found" });
+    res.json(settings);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
 exports.createSMS = async (req, res) => {
-  const settings = new AdminSettings({
-    smsProvider: req.body.smsProvider,
-    smsApiKey: req.body.smsApiKey,
-    smsSenderId: req.body.smsSenderId,
-    lastModifiedBy: req.body.lastModifiedBy
-  });
-  await settings.save();
-  res.status(201).json({ message: "SMS settings created", settings });
-}
+  try {
+    const settings = new SMSSettings(req.body);
+    await settings.save();
+    res.status(201).json(settings);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+exports.getSMS = async (req, res) => {
+  try {
+    const settings = await SMSSettings.find();
+    res.json(settings);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+exports.getSMSById = async (req, res) => {
+  try {
+    const settings = await SMSSettings.findById(req.params.id);
+    if (!settings) return res.status(404).json({ message: "SMS settings not found" });
+    res.json(settings);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
 
 exports.updateSMS = async (req, res) => {
-  const settings = await getSettingsDoc();
-  Object.assign(settings, req.body);
-  await settings.save();
-  res.status(200).json({ message: "SMS settings updated", settings });
-}
-exports.getSMS = async (req, res) => {
-  const settings = await getSettingsDoc();
-  const { smsProvider, smsApiKey, smsSenderId } = settings;
-  res.status(200).json({ smsProvider, smsApiKey, smsSenderId });
-}
-// ===== WHATSAPP =====
+  try {
+    const settings = await SMSSettings.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    if (!settings) return res.status(404).json({ message: "SMS settings not found" });
+    res.json(settings);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
 exports.createWhatsApp = async (req, res) => {
-  const settings = new AdminSettings({
-    whatsappApiUrl: req.body.whatsappApiUrl,
-    whatsappAccessToken: req.body.whatsappAccessToken,
-    whatsappPhoneNumberId: req.body.whatsappPhoneNumberId,
-    lastModifiedBy: req.body.lastModifiedBy
-  });
-  await settings.save();
-  res.status(201).json({ message: "WhatsApp settings created", settings });
-}
-exports.updateWhatsApp = async (req, res) => {
-  const settings = await getSettingsDoc();
-  Object.assign(settings, req.body);
-  await settings.save();
-  res.status(200).json({ message: "WhatsApp settings updated", settings });
-}
+  try {
+    const settings = new WhatsAppSettings(req.body);
+    await settings.save();
+    res.status(201).json(settings);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
 exports.getWhatsApp = async (req, res) => {
-  const settings = await getSettingsDoc();
-  const { whatsappApiUrl, whatsappAccessToken, whatsappPhoneNumberId } = settings;
-  res.status(200).json({ whatsappApiUrl, whatsappAccessToken, whatsappPhoneNumberId });
-}
+  try {
+    const settings = await WhatsAppSettings.find();
+    res.json(settings);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
 
-// ===== SYSTEM =====
+exports.getWhatsAppById = async (req, res) => {
+  try {
+    const settings = await WhatsAppSettings.findById(req.params.id);
+    if (!settings) return res.status(404).json({ message: "WhatsApp settings not found" });
+    res.json(settings);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+exports.updateWhatsApp = async (req, res) => {
+  try {
+    const settings = await WhatsAppSettings.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    if (!settings) return res.status(404).json({ message: "WhatsApp settings not found" });
+    res.json(settings);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+exports.createSecurity = async (req, res) => {
+  try {
+    const settings = new SecuritySettings(req.body);
+    await settings.save();
+    res.status(201).json(settings);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+exports.getSecurity = async (req, res) => {
+  try {
+    const settings = await SecuritySettings.find();
+    res.json(settings);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+exports.getSecurityById = async (req, res) => {
+  try {
+    const settings = await SecuritySettings.findById(req.params.id);
+    if (!settings) return res.status(404).json({ message: "Security settings not found" });
+    res.json(settings);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+exports.updateSecurity = async (req, res) => {
+  try {
+    const settings = await SecuritySettings.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    if (!settings) return res.status(404).json({ message: "Security settings not found" });
+    res.json(settings);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
 exports.createSystem = async (req, res) => {
-  const settings = new AdminSettings({
-    timezone: req.body.timezone,
-    currency: req.body.currency,
-    dateFormat: req.body.dateFormat,
-    lastModifiedBy: req.body.lastModifiedBy
-  });
-  await settings.save();
-  res.status(201).json({ message: "System settings created", settings });
-}
-exports.updateSystem = async (req, res) => {
-  const settings = await getSettingsDoc();
-  Object.assign(settings, req.body);
-  await settings.save();
-  res.status(200).json({ message: "System settings updated", settings });
-}
+  try {
+    const settings = new SystemSettings(req.body);
+    await settings.save();
+    res.status(201).json(settings);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
 exports.getSystem = async (req, res) => {
-  const settings = await getSettingsDoc();
-  const { timezone, currency, dateFormat } = settings;
-  res.status(200).json({ timezone, currency, dateFormat });
-}
-// ===== GET ALL =====
-exports.getAllSettings = async (req, res) => {
-  const settings = await getSettingsDoc();
-  res.status(200).json(settings);
-}
-
-exports.createBackup = async (req, res) => {
-  const settings = await AdminSettings.findOne();
-  if (!settings) {
-    return res.status(404).json({ message: "No settings found to backup" });
+  try {
+    const settings = await SystemSettings.find();
+    res.json(settings);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
   }
+};
 
-  const fs = require("fs");
-  const path = require("path");
-  const backupDir = path.join(__dirname, "../backup");
-  const backupPath = path.join(backupDir, "adminSettingsBackup.json");
-
-  if (!fs.existsSync(backupDir)) {
-    fs.mkdirSync(backupDir, { recursive: true });
+exports.getSystemById = async (req, res) => {
+  try {
+    const settings = await SystemSettings.findById(req.params.id);
+    if (!settings) return res.status(404).json({ message: "System settings not found" });
+    res.json(settings);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
   }
+};
 
-  fs.writeFileSync(backupPath, JSON.stringify(settings, null, 2));
-
-  res.json({
-    message: "Backup created successfully",
-    backupPath
-  });
-}
-
-exports.restoreBackup = async (req, res) => {
-  const fs = require("fs");
-  const path = require("path");
-  const backupPath = path.join(__dirname, "../backup/adminSettingsBackup.json");
-
-  if (!fs.existsSync(backupPath)) {
-    return res.status(404).json({ message: "No backup file found" });
+exports.updateSystem = async (req, res) => {
+  try {
+    const settings = await SystemSettings.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    if (!settings) return res.status(404).json({ message: "System settings not found" });
+    res.json(settings);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
   }
+};
 
-  const backupData = JSON.parse(fs.readFileSync(backupPath, "utf-8"));
-  const beforeData = await AdminSettings.findOne();
-
-  let restoredSettings;
-  if (beforeData) {
-    restoredSettings = await AdminSettings.findOneAndUpdate({}, backupData, { new: true });
-  } else {
-    restoredSettings = await AdminSettings.create(backupData);
+exports.createAudit = async (req, res) => {
+  try {
+    const log = new AuditLogs(req.body);
+    await log.save();
+    res.status(201).json(log);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
   }
-  await AuditLog.create({
-    action: "RESTORE_BACKUP",
-    userId: req.user ? req.user.id : null,
-    before: beforeData,
-    after: restoredSettings,
-    ip: req.ip
-  });
+};
 
-  res.json({ message: "Backup restored successfully", data: restoredSettings });
+exports.getAudit = async (req, res) => {
+  try {
+    const logs = await AuditLogs.find();
+    res.json(logs);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+exports.getAuditById = async (req, res) => {
+  try {
+    const log = await AuditLogs.findById(req.params.id);
+    if (!log) return res.status(404).json({ message: "Audit log not found" });
+    res.json(log);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+exports.updateAudit = async (req, res) => {
+  try {
+    const log = await AuditLogs.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    if (!log) return res.status(404).json({ message: "Audit log not found" });
+    res.json(log);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
 };

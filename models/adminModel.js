@@ -1,41 +1,67 @@
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
 
-const adminSchema = new mongoose.Schema({
-  // General
-  companyName: { type: String, default: '' },
-  companyAddress: { type: String, default: '' },
-  companyPAN: { type: String, default: '' },
-  contactPhone: { type: String, default: '' },
-  contactEmail: { type: String, default: '' },
-  bankAccountNumber: { type: String, default: '' },
-  bankName: { type: String, default: '' },
-  bankIFSC: { type: String, default: '' },
+const GeneralSchema = new mongoose.Schema({
+  companyName: { type: String, required: true },
+  companyAddress: { type: String, required: true },
+  companyPAN: { type: String },
+  contactPhone: { type: String },
+  contactEmail: { type: String },
+  bankAccountNumber: { type: String },
+  bankName: { type: String },
+  bankIFSC: { type: String }
+}, { timestamps: true });
+const GeneralSettings = mongoose.model("GeneralSettings", GeneralSchema);
 
-  // Email settings
-  smtpHost: { type: String, default: '' },
+const EmailSchema = new mongoose.Schema({
+  smtpHost: { type: String },
   smtpPort: { type: Number, default: 587 },
-  smtpUser: { type: String, default: '' },
-  smtpPass: { type: String, default: '' },
-  fromName: { type: String, default: '' },
-  fromEmail: { type: String, default: '' },
+  smtpUsername: { type: String },
+  smtpPassword: { type: String },
+  fromName: { type: String },
+  fromEmail: { type: String }
+}, { timestamps: true });
+const EmailSettings = mongoose.model("EmailSettings", EmailSchema);
 
-  // SMS settings
-  smsProvider: { type: String, default: '' },
-  smsApiKey: { type: String, default: '' },
-  smsSenderId: { type: String, default: '' },
+const SMSSchema = new mongoose.Schema({
+  provider: { type: String, enum: ["twilio", "nexmo", "other"], default: "twilio" },
+  apiKey: { type: String },
+  senderId: { type: String }
+}, { timestamps: true });
+const SMSSettings = mongoose.model("SMSSettings", SMSSchema);
 
-  // WhatsApp settings
-  whatsappApiUrl: { type: String, default: '' },
-  whatsappAccessToken: { type: String, default: '' },
-  whatsappPhoneNumberId: { type: String, default: '' },
+const WhatsAppSchema = new mongoose.Schema({
+  apiUrl: { type: String },
+  accessToken: { type: String },
+  phoneNumberId: { type: String }
+}, { timestamps: true });
+const WhatsAppSettings = mongoose.model("WhatsAppSettings", WhatsAppSchema);
 
-  // System
-  timezone: { type: String, default: '' },
-  currency: { type: String, default: '' },
-  dateFormat: { type: String, default: '' },
+const SecuritySchema = new mongoose.Schema({
+  apiKeys: [{ name: String, key: String, createdAt: { type: Date, default: Date.now } }],
+  webhooks: [{ url: String, event: String }]
+}, { timestamps: true });
+const SecuritySettings = mongoose.model("SecuritySettings", SecuritySchema);
 
-  lastModifiedBy: { type: String }
-}, { timestamps: true }); 
+const SystemSchema = new mongoose.Schema({
+  currency: { type: String, default: "USD" },
+  dateFormat: { type: String, default: "YYYY-MM-DD" },
+  timezone: { type: String, default: "UTC" }
+}, { timestamps: true });
+const SystemSettings = mongoose.model("SystemSettings", SystemSchema);
 
-const adminModel = mongoose.model('AdminSettings', adminSchema);
-module.exports= adminModel;
+const AuditLogSchema = new mongoose.Schema({
+  action: String,
+  performedBy: String,
+  timestamp: { type: Date, default: Date.now }
+}, { timestamps: true });
+const AuditLogs = mongoose.model("AuditLogs", AuditLogSchema);
+
+module.exports = {
+  GeneralSettings,
+  EmailSettings,
+  SMSSettings,
+  WhatsAppSettings,
+  SecuritySettings,
+  SystemSettings,
+  AuditLogs
+};

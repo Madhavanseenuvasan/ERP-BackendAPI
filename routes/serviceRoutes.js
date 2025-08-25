@@ -1,19 +1,10 @@
 const express = require('express');
 
-const {
-  createService,
-  getServiceById,
-  updateServiceStatus,
-  getAssignedServiceByUser,
-  updateserviceFeedback
-} = require('../controllers/serviceController');
+const { createTicket, getAllTickets, getTicketById, updateTicket, deleteTicket, updateFeedback, updateStatus, getTicketsByEngineer } = require('../controllers/serviceController');
 
 const router = express.Router();
 
-router.route('/').post(createService);
-router.route('/assigned/:userId').get(getAssignedServiceByUser);
-router.route('/:id').get(getServiceById);
-router.route('/:id/status').put(updateServiceStatus);
-router.route('/:id/feedback').put(updateserviceFeedback)
+router.route('/').post(createTicket).get(getAllTickets).get(getTicketsByEngineer);
+router.route('/:id').get(getTicketById).put(updateTicket).put(updateFeedback).put(updateStatus).delete(deleteTicket);
 
 module.exports = router;

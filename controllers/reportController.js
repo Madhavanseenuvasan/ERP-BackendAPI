@@ -1,62 +1,87 @@
+const Report = require("../models/reportModel");
 
-const { serviceModel, salesModel, inventoryModel, financeModel, EngineerPerformance, Dashboard } = require('../models/reportModel');
+exports.createReport = async (req, res) => {
+  try {
+    const report = new Report(req.body);
+    await report.save();
+    res.status(201).json({ success: true, data: report });
+  } catch (error) {
+    console.error("Report create error:", error);
+    res.status(400).json({ success: false, message: error.message, error });
+  }
+};
 
-exports.createSales = async (req, res) => {
-  const sales = await salesModel.create(req.body);
-  res.status(201).json(sales);
-}
+exports.getReports = async (req, res) => {
+  try {
+    let { reportType } = req.query;
+    if (reportType) {
+      reportType = reportType.trim();
+    }
 
-exports.getSalesReport = async (req, res) => {
-  const reports = await salesModel.find();
-  res.status(200).json(reports);
-}
+    const filter = reportType
+      ? { reportType: { $regex: new RegExp(`^${reportType}$`, 'i') } }
+      : {};
 
-exports.createInventory = async (req, res) => {
-  const inventory = await inventoryModel.create(req.body);
-  res.status(201).json(inventory);
-}
-exports.getInventoryReport = async (req, res) => {
-  const reports = await inventoryModel.find();
-  res.status(200).json(reports);
-}
+    console.log("MongoDB filter:", filter);
 
-exports.createFinance = async (req, res) => {
-  const finance = await financeModel.create(req.body);
-  res.status(201).json(finance);
-}
-exports.getFinanceReport = async (req, res) => {
-  const reports = await financeModel.find();
-  res.status(200).json(reports);
-}
+    const reports = await Report.find(filter).sort({ createdAt: -1 });
+    console.log("Reports found:", reports.length);
 
-exports.createCustom = async (req, res) => {
-  const service = await serviceModel.create(req.body);
-  res.status(201).json(service);
-}
-
-exports.getCustomReport = async (req, res) => {
-  const filters = req.query.filters ? JSON.parse(req.query.filters) : {};
-  const reports = await serviceModel.find(filters);
-  res.status(200).json(reports);
-}
-
-exports.createEngineerPerformance = async (req, res) => {
-  const report = await EngineerPerformance.create(req.body);
-  res.status(201).json(report);
-}
-exports.getAllEngineerPerformance = async (req, res) => {
-  const reports = await EngineerPerformance.find();
-  res.status(200).json(reports);
-}
-
-exports.createDashboard = async (req, res) => {
-  const dashboard = await Dashboard.create(req.body);
-  res.status(201).json(dashboard);
-}
-
-exports.getAllDashboards = async (req, res) => {
-  const dashboards = await Dashboard.find();
-  res.status(200).json(dashboards);
-}
+    res.status(200).json({ success: true, data: reports });
+  } catch (error) {
+    console.error("Error fetching reports:", error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
 
 
+
+exports.getReportById = async (req, res) => {
+  try {
+    const report = await Report.findById(req.params.id);
+    if (!report) {
+      return res.status(404).json({ success: false, message: "Report not found" });
+    }
+    res.status(200).json({ success: true, data: report });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+exports.updateReport = async (req, res) => {
+  try {
+    const report = await Report.findByIdAndUpdate(req.params.id, req.body, {
+      new: true,
+      runValidators: true,
+    });
+    if (!report) {
+      return res.status(404).json({ success: false, message: "Report not found" });
+    }
+    res.status(200).json({ success: true, data: report });
+  } catch (error) {
+    res.status(400).json({ success: false, message: error.message });
+  }
+};
+
+exports.deleteReport = async (req, res) => {
+  try {
+    const report = await Report.findByIdAndDelete(req.params.id);
+    if (!report) {
+      return res.status(404).json({ success: false, message: "Report not found" });
+    }
+    res.status(200).json({ success: true, message: "Report deleted successfully" });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+exports.getDashboardSummary = async (req, res) => {
+  try {
+    const summary = await Report.aggregate([
+      { $group: { _id: "$reportType", count: { $sum: 1 } } }
+    ]);
+    res.status(200).json({ success: true, data: summary });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+};

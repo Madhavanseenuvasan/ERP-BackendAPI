@@ -1,13 +1,9 @@
-const express = require('express');
+const express = require("express");
 const router = express.Router();
-const { createSales, getSalesReport, createInventory,getInventoryReport,createFinance, getFinanceReport,createCustom, getCustomReport, createEngineerPerformance,getAllEngineerPerformance,createDashboard, getAllDashboards } = require('../controllers/reportController')
+const { getReports, createReport, getReportById, updateReport, deleteReport, getDashboardSummary } = require("../controllers/reportController");
 
-router.route('/sales').get(getSalesReport).post(createSales);
-router.route('/inventory').get(getInventoryReport).post(createInventory);
-router.route('/finance').get(getFinanceReport).post(createFinance);
-router.route('/custom').get(getCustomReport).post(createCustom);
-router.route('/engineers').get(getAllEngineerPerformance).post(createEngineerPerformance);
-router.route('/dashboards').get(getAllDashboards).post(createDashboard)
-
+router.route("/").post(createReport).get(getReports);
+router.route("/:id").get(getReportById).put(updateReport).delete(deleteReport);
+router.route("/dashboard/summary").get(getDashboardSummary);
 
 module.exports = router;

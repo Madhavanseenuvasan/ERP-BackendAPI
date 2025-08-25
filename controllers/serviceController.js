@@ -1,64 +1,101 @@
-const mongoose = require('mongoose')
-const serviceModel = require('../models/serviceManagementModel')
-const isvalidObjectId = (id) => mongoose.Types.ObjectId.isValid(id);
+const Ticket = require('../models/serviceManagementModel');
 
-const createService = async (req, res) => {
-  console.log('Submit service: ', req.body);
-  const { title, description, status, userId, assignedEngineer, clientFeedback, createdAt, slaHours, slaBreached, assignedAt, resolvedAt } = req.body;
-  if (!isvalidObjectId(userId) || !isvalidObjectId(assignedEngineer)) {
-    return res.status(400).json({ error: 'Invalid userId or assignedEngineer ObjectId' });
+exports.createTicket = async (req, res) => {
+  try {
+    const ticket = new Ticket(req.body);
+    await ticket.save();
+    res.status(201).json(ticket);
+  } catch (err) {
+    res.status(400).json({ error: err.message });
   }
-
-  const service = await serviceModel.create({
-    title,
-    description,
-    status,
-    userId: new mongoose.Types.ObjectId(userId),
-    assignedEngineer: new mongoose.Types.ObjectId(assignedEngineer),
-    clientFeedback,
-    createdAt,
-    slaHours,
-    slaBreached,
-    assignedAt,
-    resolvedAt
-  })
-  res.status(201).json({ service });
-}
-const getServiceById = async (req, res) => {
-  const service = await serviceModel.findById(req.params.id);
-
-  res.status(200).json({ service });
-}
-const updateServiceStatus = async (req, res) => {
-  const service = await serviceModel.findByIdAndUpdate(req.params.id);
-  if (!service) return res.json({ message: 'Not found' });
-  service.status = req.body.status;
-
-  if (req.body.status === 'Resolved') {
-    service.resolvedAt = new Date();
-    const createdAt = service.createdAt || new Date();
-    const slaTimes = service.slaHours * 60 * 60 * 1000;
-    const actualDuration = service.resolvedAt - createdAt;
-    service.slaBreached = actualDuration > slaTimes;
-  }
-  await service.save();
-  res.status(200).json({ message: '[Status updated', service })
 };
 
-const getAssignedServiceByUser = async (req, res) => {
-  const userId = new mongoose.Types.ObjectId(req.params.userId);
-  const service = await serviceModel.find({ userId: userId })
-  res.status(200).json({ service });
-};
-
-const updateserviceFeedback = async (req, res) => {
-  const { id } = req.params;
-  const { clientFeedback } = req.body;
-  const service = await serviceModel.findByIdAndUpdate(id, { clientFeedback }, { new: true })
-  if (!service) {
-    return res.status(404).json({ message: 'Service not found' });
+exports.getAllTickets = async (req, res) => {
+  try {
+    const tickets = await Ticket.find();
+    res.json(tickets);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
   }
-  res.status(200).json({ message: 'Feedback updated', service: service });
 };
 
-module.exports = { createService, getServiceById, updateServiceStatus, getAssignedServiceByUser, updateserviceFeedback }
+exports.getTicketById = async (req, res) => {
+  try {
+    const id = req.params.id.trim();
+    const ticket = await Ticket.findById(id);
+    if (!ticket) return res.status(404).json({ message: 'Ticket not found' });
+    res.json(ticket);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+exports.updateTicket = async (req, res) => {
+  try {
+    const id = req.params.id.trim();
+    const ticket = await Ticket.findByIdAndUpdate(id, req.body, { new: true });
+    if (!ticket) return res.status(404).json({ message: 'Ticket not found' });
+    res.json(ticket);
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+};
+
+exports.deleteTicket = async (req, res) => {
+  try {
+    const id = req.params.id.trim();
+    const ticket = await Ticket.findByIdAndDelete(id);
+    if (!ticket) return res.status(404).json({ message: 'Ticket not found' });
+    res.json({ message: 'Ticket deleted' });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+exports.updateFeedback = async (req, res) => {
+  try {
+    const id = req.params.id.trim();
+    const { customerFeedback, serviceQuality, customerSatisfaction } = req.body;
+
+    const ticket = await Ticket.findById(id);
+    if (!ticket) return res.status(404).json({ message: 'Ticket not found' });
+
+    ticket.customerFeedback = customerFeedback || ticket.customerFeedback;
+    ticket.serviceQuality = serviceQuality || ticket.serviceQuality;
+    ticket.customerSatisfaction = customerSatisfaction || ticket.customerSatisfaction;
+
+    await ticket.save();
+    res.json({ message: 'Feedback updated successfully', ticket });
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+};
+
+exports.updateStatus = async (req, res) => {
+  try {
+    const id = req.params.id.trim();
+    const { status } = req.body;
+
+    const ticket = await Ticket.findByIdAndUpdate(id, { status }, { new: true });
+    if (!ticket) return res.status(404).json({ message: 'Ticket not found' });
+
+    res.json({ message: 'Status updated successfully', ticket });
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+};
+
+exports.getTicketsByEngineer = async (req, res) => {
+  try {
+    const userId = req.params.userId.trim();
+    const tickets = await Ticket.find({ assignedTo: userId });
+
+    if (!tickets.length) {
+      return res.status(404).json({ message: 'No tickets assigned to this engineer' });
+    }
+
+    res.json(tickets);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};

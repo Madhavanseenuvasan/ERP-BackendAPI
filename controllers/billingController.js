@@ -1,37 +1,43 @@
 const { Invoice, Ledger, Payment } = require('../models/billingModel');
 
-const ALLOWED_STATUS = ['paid', 'unpaid', 'partial'];
+
+const ALLOWED_STATUS = ["Paid", "Unpaid", "Partial", "Pending"];
 
 exports.createInvoice = async (req, res) => {
   try {
-  const { type, invoiceNo, vendorOrCustomer, items, status = 'unpaid', date } = req.body;
+    const {
+      type,
+      invoiceNo,
+      vendorOrCustomer,
+      items,
+      totalAmount,
+      gstAmount,
+      netAmount,
+      status = "Pending",
+      date,
+      category = "General",
+      brand = ""
+    } = req.body;
 
-    if (!type || !invoiceNo || !vendorOrCustomer || !items?.length || !date) {
-      return res.status(400).json({ error: 'Missing required fields' });
+    if (
+      !type ||
+      !invoiceNo ||
+      !vendorOrCustomer ||
+      !items?.length ||
+      !date ||
+      totalAmount === undefined ||
+      netAmount === undefined
+    ) {
+      return res.status(400).json({ error: "Missing required fields" });
     }
-    if (!['purchase', 'sales'].includes(type)) {
-      return res.status(400).json({ error: 'Invalid invoice type' });
+
+    if (!["purchase", "sales"].includes(type)) {
+      return res.status(400).json({ error: "Invalid invoice type" });
     }
+
     if (!ALLOWED_STATUS.includes(status)) {
-      return res.status(400).json({ error: 'Invalid status value' });
+      return res.status(400).json({ error: "Invalid status value" });
     }
-
-    let totalAmount = 0;
-    let gstAmount = 0;
-
-    items.forEach(item => {
-      const qty = Number(item.quantity) || 0;
-      const price = Number(item.price) || 0;
-      const tax = Number(item.taxPercent) || 0;
-
-      const lineTotal = qty * price;
-      const lineTax = lineTotal * (tax / 100);
-
-      totalAmount += lineTotal;
-      gstAmount += lineTax;
-    });
-
-    const netAmount = totalAmount + gstAmount;
 
     const invoice = await Invoice.create({
       type,
@@ -41,13 +47,14 @@ exports.createInvoice = async (req, res) => {
       totalAmount,
       gstAmount,
       netAmount,
+      category,
+      brand,
       status,
       date
     });
 
-    
     await Ledger.create({
-      module: 'billing',
+      module: "billing",
       account: vendorOrCustomer,
       debit: netAmount,
       credit: 0,
@@ -60,6 +67,7 @@ exports.createInvoice = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
+
 
 
 exports.getInvoices = async (req, res) => {
