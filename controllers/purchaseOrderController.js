@@ -71,7 +71,6 @@ exports.createPurchaseOrder = async (req, res) => {
     const grandTotal = subtotal + totalTax;
 
     const po = await PurchaseOrder.create({
-      poNumber,
       supplierName,
       supplierEmail,
       supplierAddress,
