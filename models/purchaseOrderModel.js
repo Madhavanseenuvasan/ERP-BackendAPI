@@ -16,12 +16,12 @@ const itemSchema = new mongoose.Schema({
 
 
 const purchaseOrderSchema = new mongoose.Schema({
-  poNumber: { type: String, required: true, unique: true },
+  poNumber:String,
   supplierName: String,
   supplierEmail: String,
   supplierAddress: String,
   department: String,
-  priority: { type: String, enum: ['Low', 'Medium', 'High', 'Urgent'], default: 'Medium' },
+  priority: { type: String, enum: ['Low Priority', 'Medium Priority', 'High Priority'], default: 'Medium' },
   sourceType: String,
   expectedDeliveryDate: Date,
   createdDate: { type: Date, default: Date.now },
@@ -39,12 +39,12 @@ const purchaseOrderSchema = new mongoose.Schema({
 });
 
 
-purchaseOrderSchema.pre('save', function(next) {
-  this.subtotal = this.items.reduce((sum, item) => sum + (item.unitPrice * item.quantity), 0);
-  this.totalTax = this.items.reduce((sum, item) => sum + ((item.unitPrice * item.quantity) * (item.gstPercent / 100)), 0);
-  this.grandTotal = this.subtotal + this.totalTax;
-  next();
-});
+// purchaseOrderSchema.pre('save', function(next) {
+//   this.subtotal = this.items.reduce((sum, item) => sum + (item.unitPrice * item.quantity), 0);
+//   this.totalTax = this.items.reduce((sum, item) => sum + ((item.unitPrice * item.quantity) * (item.gstPercent / 100)), 0);
+//   this.grandTotal = this.subtotal + this.totalTax;
+//   next();
+// });
 
 
 const expenseSchema = new mongoose.Schema({
