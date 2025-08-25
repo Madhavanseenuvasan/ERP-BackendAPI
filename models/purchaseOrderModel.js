@@ -14,8 +14,8 @@ const itemSchema = new mongoose.Schema({
   itemNotes: String
 });
 
-
 const purchaseOrderSchema = new mongoose.Schema({
+  poNumber: { type: String, unique: true },
   supplierName: String,
   supplierAddress: String,
   department: String,
@@ -28,18 +28,30 @@ const purchaseOrderSchema = new mongoose.Schema({
     enum: ['Draft', 'Confirmed', 'Received', 'Partially Received', 'Cancelled'], 
     default: 'Draft' 
   },
-  deliveryStatus: { type: String, enum: ['on time', 'delayed', 'delivered'], default: 'on time' },
+  deliveryStatus: { 
+    type: String, 
+    enum: ['on time', 'delayed', 'delivered'], 
+    default: 'on time' 
+  },
   items: [itemSchema],
-  notes: String
+  notes: String,
+  subtotal: Number,
+  totalTax: Number,
+  grandTotal: Number
 });
 
+// Auto-generate PO number + calculate totals
+purchaseOrderSchema.pre('save', async function(next) {
+  if (!this.poNumber) {
+    this.poNumber = `PO-${Date.now()}`;
+  }
 
-// purchaseOrderSchema.pre('save', function(next) {
-//   this.subtotal = this.items.reduce((sum, item) => sum + (item.unitPrice * item.quantity), 0);
-//   this.totalTax = this.items.reduce((sum, item) => sum + ((item.unitPrice * item.quantity) * (item.gstPercent / 100)), 0);
-//   this.grandTotal = this.subtotal + this.totalTax;
-//   next();
-// });
+  this.subtotal = this.items.reduce((sum, item) => sum + (item.unitPrice * item.quantity), 0);
+  this.totalTax = this.items.reduce((sum, item) => sum + ((item.unitPrice * item.quantity) * (item.gstPercent || 0) / 100), 0);
+  this.grandTotal = this.subtotal + this.totalTax;
+
+  next();
+});
 
 
 const expenseSchema = new mongoose.Schema({

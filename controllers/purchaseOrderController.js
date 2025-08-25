@@ -75,12 +75,6 @@ exports.createPurchaseOrder = async (req, res) => {
       deliveryStatus
     } = req.body;
 
-    // Calculate totals
-    const subtotal = items.reduce((acc, i) => acc + (i.quantity * i.unitPrice), 0);
-    const totalTax = items.reduce((acc, i) => acc + ((i.quantity * i.unitPrice) * (i.gstPercent || 0) / 100), 0);
-    const grandTotal = subtotal + totalTax;
-
-    // Create purchase order
     const po = await PurchaseOrder.create({
       supplierName,
       supplierAddress,
@@ -91,19 +85,17 @@ exports.createPurchaseOrder = async (req, res) => {
       items,
       notes,
       status,
-      deliveryStatus,
-      subtotal,
-      totalTax,
-      grandTotal
+      deliveryStatus
     });
 
     // Ledger entry
     await Ledger.create({
       module: 'purchase',
       account: 'Accounts Payable',
-      debit: grandTotal,
+      debit: po.grandTotal,
       credit: 0,
-      description: `PO Created: ${po._id}`,   // safer to use po._id instead of poNumber
+      description: `PO Created: ${po.poNumber}`,
+      entryDate: new Date(),
       relatedInvoice: po._id
     });
 
@@ -112,7 +104,6 @@ exports.createPurchaseOrder = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
-
 
 
 exports.updatePO = async (req, res) => {
