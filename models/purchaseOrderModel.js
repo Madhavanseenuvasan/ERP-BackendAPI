@@ -16,12 +16,10 @@ const itemSchema = new mongoose.Schema({
 
 
 const purchaseOrderSchema = new mongoose.Schema({
-  poNumber:String,
   supplierName: String,
-  supplierEmail: String,
   supplierAddress: String,
   department: String,
-  priority: { type: String, enum: ['Low Priority', 'Medium Priority', 'High Priority'], default: 'Medium' },
+  priority: String,
   sourceType: String,
   expectedDeliveryDate: Date,
   createdDate: { type: Date, default: Date.now },
@@ -32,10 +30,7 @@ const purchaseOrderSchema = new mongoose.Schema({
   },
   deliveryStatus: { type: String, enum: ['on time', 'delayed', 'delivered'], default: 'on time' },
   items: [itemSchema],
-  notes: String,
-  subtotal: { type: Number, default: 0 },
-  totalTax: { type: Number, default: 0 },
-  grandTotal: { type: Number, default: 0 }
+  notes: String
 });
 
 
