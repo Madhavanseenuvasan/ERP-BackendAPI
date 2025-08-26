@@ -1,5 +1,5 @@
 const { client, equipment, amcModel } = require("../models/amcModel");
-const { Parser } = require("json2csv");
+const parser = require('json2csv');
 const ExcelJS = require("exceljs");
 
 const newContract = async (req, res) => {
@@ -12,11 +12,20 @@ const newContract = async (req, res) => {
   }
 };
 
+const getContracts = async (req, res) => {
+  try {
+    const contracts = await amcModel.find()
+    res.status(200).json(contracts);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
 const getContractById = async (req, res) => {
   try {
     const contract = await amcModel
       .findById(req.params.id)
-      .populate("Client Equipment");
+      .populate("client equipment");
     if (!contract) {
       return res.status(404).json({ error: "contract not found" });
     }
@@ -40,9 +49,9 @@ const updateContractById = async (req, res) => {
   }
 };
 
-const ContractRemainder = async (req, res) => {  //asynchrnous function
+const ContractRemainder = async (req, res) => { 
 
-  //This function helps you automatically find those contracts that need service within the next 7 days — so you can prepare, schedule, or send reminders.
+  
   try {
     const today = new Date();
     const upcomingContracts = await amcModel
@@ -197,7 +206,7 @@ const getDashboardSummary = async (req, res) => {
       contractsExpiringThisMonth,
     };
 
-    if (exportType === "csv" || exportType === "'excel") {
+    if (exportType === "csv" || exportType === "excel") {
       console.log(`Export requested as ${exportType}.`);
     }
     res.status(200).json({summary , contracts})
@@ -208,6 +217,7 @@ const getDashboardSummary = async (req, res) => {
 
 module.exports = {
   newContract,
+  getContracts,
   getContractById,
   updateContractById,
   ContractRemainder,

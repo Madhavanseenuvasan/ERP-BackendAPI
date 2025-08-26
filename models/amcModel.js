@@ -11,8 +11,6 @@ const clientSchema = new Schema(
   { timestamps: true }
 );
 
-
-
 const equipmentSchema = new Schema(
   {
     name: { type: String },
@@ -22,8 +20,6 @@ const equipmentSchema = new Schema(
   },
   { timestamps: true }
 );
-
-
 
 const amcSchema = new Schema(
   {

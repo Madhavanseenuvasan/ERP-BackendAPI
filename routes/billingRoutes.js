@@ -1,23 +1,26 @@
 const express = require('express');
 const router = express.Router();
-const {
-  getTaxSummary,
-  createInvoice,
-  getLedger,
-  makePayment,
-  getInvoices,
-  getSingleInvoice,
-  updateInvoice,
-  deleteInvoice
-} = require('../controllers/billingController');
 
-router.route('/invoices').get(getInvoices).post(createInvoice);
-router.route('/invoices/:id').get(getSingleInvoice).put(updateInvoice).delete(deleteInvoice);
+const controllers = require('../controllers/billingController');
 
-router.route('/invoices/:id/payments').post(makePayment);
+router.post('/customers', controllers.createCustomer);
+router.get('/customers', controllers.getCustomers);
 
-router.route('/tax-summary').get(getTaxSummary);
+router.post('/engineers', controllers.createEngineer);
+router.get('/engineers', controllers.getEngineers);
 
-router.route('/ledger').get(getLedger);
+router.post('/quotations', controllers.createQuotation);
+router.get('/quotations', controllers.getQuotations);
+
+router.post('/invoices', controllers.createInvoice);
+router.get('/invoices', controllers.getInvoices);
+router.get('/invoices/:id', controllers.getSingleInvoice);
+router.put('/invoices/:id', controllers.updateInvoice);
+router.delete('/invoices/:id', controllers.deleteInvoice);
+
+router.post('/invoices/:id/payments', controllers.makePayment);
+
+router.get('/ledger', controllers.getLedger);
+router.get('/tax-summary', controllers.getTaxSummary);
 
 module.exports = router;

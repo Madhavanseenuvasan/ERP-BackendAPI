@@ -1,47 +1,24 @@
-const mongoose = require("mongoose");
-const crypto = require("crypto");
+const mongoose = require('mongoose');
 
-const userSchema = new mongoose.Schema(
-  {
-    firstname: { type: String },
-    lastname: { type: String },
-    username: { type: String, unique: true },
-    email: { type: String, required: true, unique: true },
+const PermissionSchema = new mongoose.Schema({
+    module: { type: String, required: true },
+    read: { type: Boolean, default: false },
+    write: { type: Boolean, default: false }
+});
+
+const UserSchema = new mongoose.Schema({
+    firstName: { type: String, required: true },
+    lastName: { type: String, required: true },
+    emailAddress: { type: String, required: true, unique: true },
+    phoneNumber: { type: String },
+    userRole: { type: String, enum: ['Super Admin', 'Admin', 'Manager', 'Field Operator', 'Viewer', 'HR'], required: true },
+    department: { type: String },
+    status: { type: String, enum: ['active', 'inactive', 'deleted'], default: 'active' },
+    lastLogin: { type: Date },
     password: { type: String, required: true },
-    role: {
-      type: String,
-      enum: ["SuperAdmin", "Admin", "Manager", "Employee", "Client"],
-      default: "Client",
-    },
-    phonenumber: { type: String },
-    isActive: {
-      type: Boolean,
-      default: true,
-    },
-     loginLogs: [
-    {
-      loginTime: Date,
-      logoutTime: Date,
-    }],
-    resetPasswordToken: { type: String },
-    resetPasswordExpires: { type: Date },
-  },
-  { timestamps: true }
-);
+    actions: [{ type: String }],
+    permissions: [PermissionSchema],
+    createdAt: { type: Date, default: Date.now }
+});
 
-userSchema.methods.generateResetToken = function () {
-  const resetToken = crypto.randomBytes(20).toString("hex");
-
-  this.resetPasswordToken = crypto
-    .createHash("sha256")
-    .update(resetToken)
-    .digest("hex");
-  this.resetPasswordExpires = Date.now() + 10 * 60 * 1000; // 10 minutes
-
-  return resetToken;
-};
-
-const userModel = mongoose.model("User", userSchema);
-
-module.exports = userModel;
-
+module.exports = mongoose.model('User', UserSchema);

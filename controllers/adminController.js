@@ -6,278 +6,297 @@ const {
   SecuritySettings,
   SystemSettings,
   AuditLogs
-} = require("../models/adminModel");
+} = require('../models/adminModel')
 
-exports.createGeneral = async (req, res) => {
+const sendResponse = (res, status, success, message, data = null) => {
+  res.status(status).json({ success, message, data });
+};
+
+exports.createGeneralSettings = async (req, res) => {
   try {
-    const settings = new GeneralSettings(req.body);
-    await settings.save();
-    res.status(201).json(settings);
+    const general = new GeneralSettings(req.body);
+    const saved = await general.save();
+    sendResponse(res, 201, true, "General settings created", saved);
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    sendResponse(res, 400, false, err.message);
   }
 };
 
-exports.getGeneral = async (req, res) => {
+exports.getGeneralSettings = async (req, res) => {
   try {
-    const settings = await GeneralSettings.find();
-    res.json(settings);
+    const general = await GeneralSettings.findById(req.params.id);
+    if (!general) return sendResponse(res, 404, false, "Not found");
+    sendResponse(res, 200, true, "General settings fetched", general);
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    sendResponse(res, 400, false, err.message);
   }
 };
 
-exports.getGeneralById = async (req, res) => {
+exports.updateGeneralSettings = async (req, res) => {
   try {
-    const settings = await GeneralSettings.findById(req.params.id);
-    if (!settings) return res.status(404).json({ message: "General settings not found" });
-    res.json(settings);
+    const updated = await GeneralSettings.findByIdAndUpdate(
+      req.params.id,
+      req.body,
+      { new: true }
+    );
+    if (!updated) return sendResponse(res, 404, false, "Not found");
+    sendResponse(res, 200, true, "General settings updated", updated);
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    sendResponse(res, 400, false, err.message);
   }
 };
 
-exports.updateGeneral = async (req, res) => {
+exports.deleteGeneralSettings = async (req, res) => {
   try {
-    const settings = await GeneralSettings.findByIdAndUpdate(req.params.id, req.body, { new: true });
-    if (!settings) return res.status(404).json({ message: "General settings not found" });
-    res.json(settings);
+    const deleted = await GeneralSettings.findByIdAndDelete(req.params.id);
+    if (!deleted) return sendResponse(res, 404, false, "Not found");
+    sendResponse(res, 200, true, "General settings deleted");
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    sendResponse(res, 400, false, err.message);
   }
 };
 
-exports.createEmail = async (req, res) => {
+exports.createEmailSettings = async (req, res) => {
   try {
-    const settings = new EmailSettings(req.body);
-    await settings.save();
-    res.status(201).json(settings);
+    const email = new EmailSettings(req.body);
+    const saved = await email.save();
+    sendResponse(res, 201, true, "Email settings created", saved);
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    sendResponse(res, 400, false, err.message);
   }
 };
 
-exports.getEmail = async (req, res) => {
+exports.getEmailSettings = async (req, res) => {
   try {
-    const settings = await EmailSettings.find();
-    console.log("hello world");
-    res.json(settings);
+    const email = await EmailSettings.findById(req.params.id);
+    if (!email) return sendResponse(res, 404, false, "Not found");
+    sendResponse(res, 200, true, "Email settings fetched", email);
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    sendResponse(res, 400, false, err.message);
   }
 };
 
-exports.getEmailById = async (req, res) => {
+exports.updateEmailSettings = async (req, res) => {
   try {
-    const settings = await EmailSettings.findById(req.params.id);
-    if (!settings) return res.status(404).json({ message: "Email settings not found" });
-    res.json(settings);
+    const updated = await EmailSettings.findByIdAndUpdate(
+      req.params.id,
+      req.body,
+      { new: true }
+    );
+    if (!updated) return sendResponse(res, 404, false, "Not found");
+    sendResponse(res, 200, true, "Email settings updated", updated);
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    sendResponse(res, 400, false, err.message);
   }
 };
 
-exports.updateEmail = async (req, res) => {
+exports.deleteEmailSettings = async (req, res) => {
   try {
-    const settings = await EmailSettings.findByIdAndUpdate(req.params.id, req.body, { new: true });
-    if (!settings) return res.status(404).json({ message: "Email settings not found" });
-    res.json(settings);
+    const deleted = await EmailSettings.findByIdAndDelete(req.params.id);
+    if (!deleted) return res.status(404).json({ success: false, message: "Not found" });
+    res.json({ success: true, message: "Email settings deleted" });
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    res.status(400).json({ success: false, message: err.message });
   }
 };
 
-exports.createSMS = async (req, res) => {
+exports.createSMSSettings = async (req, res) => {
   try {
-    const settings = new SMSSettings(req.body);
-    await settings.save();
-    res.status(201).json(settings);
+    const sms = new SMSSettings(req.body);
+    const saved = await sms.save();
+    sendResponse(res, 201, true, "SMS settings created", saved);
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    sendResponse(res, 400, false, err.message);
   }
 };
 
-exports.getSMS = async (req, res) => {
+exports.getSMSSettings = async (req, res) => {
   try {
-    const settings = await SMSSettings.find();
-    res.json(settings);
+    const sms = await SMSSettings.findById(req.params.id);
+    if (!sms) return sendResponse(res, 404, false, "Not found");
+    sendResponse(res, 200, true, "SMS settings fetched", sms);
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    sendResponse(res, 400, false, err.message);
   }
 };
 
-exports.getSMSById = async (req, res) => {
+exports.updateSMSSettings = async (req, res) => {
   try {
-    const settings = await SMSSettings.findById(req.params.id);
-    if (!settings) return res.status(404).json({ message: "SMS settings not found" });
-    res.json(settings);
+    const updated = await SMSSettings.findByIdAndUpdate(
+      req.params.id,
+      req.body,
+      { new: true }
+    );
+    if (!updated) return sendResponse(res, 404, false, "Not found");
+    sendResponse(res, 200, true, "SMS settings updated", updated);
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    sendResponse(res, 400, false, err.message);
   }
 };
 
-exports.updateSMS = async (req, res) => {
+exports.deleteSMSSettings = async (req, res) => {
   try {
-    const settings = await SMSSettings.findByIdAndUpdate(req.params.id, req.body, { new: true });
-    if (!settings) return res.status(404).json({ message: "SMS settings not found" });
-    res.json(settings);
+    const deleted = await SMSSettings.findByIdAndDelete(req.params.id);
+    if (!deleted) return res.status(404).json({ success: false, message: "Not found" });
+    res.json({ success: true, message: "SMS settings deleted" });
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    res.status(400).json({ success: false, message: err.message });
   }
 };
 
-exports.createWhatsApp = async (req, res) => {
+exports.createWhatsAppSettings = async (req, res) => {
   try {
-    const settings = new WhatsAppSettings(req.body);
-    await settings.save();
-    res.status(201).json(settings);
+    const whatsapp = new WhatsAppSettings(req.body);
+    const saved = await whatsapp.save();
+    sendResponse(res, 201, true, "WhatsApp settings created", saved);
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    sendResponse(res, 400, false, err.message);
   }
 };
 
-exports.getWhatsApp = async (req, res) => {
+exports.getWhatsAppSettings = async (req, res) => {
   try {
-    const settings = await WhatsAppSettings.find();
-    res.json(settings);
+    const whatsapp = await WhatsAppSettings.findById(req.params.id);
+    if (!whatsapp) return sendResponse(res, 404, false, "Not found");
+    sendResponse(res, 200, true, "WhatsApp settings fetched", whatsapp);
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    sendResponse(res, 400, false, err.message);
   }
 };
 
-exports.getWhatsAppById = async (req, res) => {
+exports.updateWhatsAppSettings = async (req, res) => {
   try {
-    const settings = await WhatsAppSettings.findById(req.params.id);
-    if (!settings) return res.status(404).json({ message: "WhatsApp settings not found" });
-    res.json(settings);
+    const updated = await WhatsAppSettings.findByIdAndUpdate(
+      req.params.id,
+      req.body,
+      { new: true }
+    );
+    if (!updated) return sendResponse(res, 404, false, "Not found");
+    sendResponse(res, 200, true, "WhatsApp settings updated", updated);
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    sendResponse(res, 400, false, err.message);
   }
 };
 
-exports.updateWhatsApp = async (req, res) => {
+exports.deleteWhatsappSettings = async (req, res) => {
   try {
-    const settings = await WhatsAppSettings.findByIdAndUpdate(req.params.id, req.body, { new: true });
-    if (!settings) return res.status(404).json({ message: "WhatsApp settings not found" });
-    res.json(settings);
+    const deleted = await WhatsAppSettings.findByIdAndDelete(req.params.id);
+    if (!deleted) return res.status(404).json({ success: false, message: "Not found" });
+    res.json({ success: true, message: "WhatsApp settings deleted" });
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    res.status(400).json({ success: false, message: err.message });
+  }
+}
+
+exports.createSecuritySettings = async (req, res) => {
+  try {
+    const security = new SecuritySettings(req.body);
+    const saved = await security.save();
+    sendResponse(res, 201, true, "Security settings created", saved);
+  } catch (err) {
+    sendResponse(res, 400, false, err.message);
   }
 };
 
-exports.createSecurity = async (req, res) => {
+exports.getSecuritySettings = async (req, res) => {
   try {
-    const settings = new SecuritySettings(req.body);
-    await settings.save();
-    res.status(201).json(settings);
+    const sec = await SecuritySettings.findById(req.params.id);
+    if (!sec) return res.status(404).json({ success: false, message: "Not found" });
+    res.json({ success: true, data: sec });
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    res.status(400).json({ success: false, message: err.message });
+  }
+}
+exports.updateSecuritySettings = async (req, res) => {
+  try {
+    const updated = await SecuritySettings.findByIdAndUpdate(
+      req.params.id,
+      req.body,
+      { new: true }
+    );
+    if (!updated) return sendResponse(res, 404, false, "Not found");
+    sendResponse(res, 200, true, "Security settings updated", updated);
+  } catch (err) {
+    sendResponse(res, 400, false, err.message);
   }
 };
 
-exports.getSecurity = async (req, res) => {
+exports.deleteSecuritySettings =  async (req, res) => {
   try {
-    const settings = await SecuritySettings.find();
-    res.json(settings);
+    const deleted = await SecuritySettings.findByIdAndDelete(req.params.id);
+    if (!deleted) return res.status(404).json({ success: false, message: "Not found" });
+    res.json({ success: true, message: "Security settings deleted" });
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    res.status(400).json({ success: false, message: err.message });
+  }
+}
+
+exports.createSystemSettings = async (req, res) => {
+  try {
+    const system = new SystemSettings(req.body);
+    const saved = await system.save();
+    sendResponse(res, 201, true, "System settings created", saved);
+  } catch (err) {
+    sendResponse(res, 400, false, err.message);
   }
 };
 
-exports.getSecurityById = async (req, res) => {
+exports.getSystemSettings = async (req, res) => {
   try {
-    const settings = await SecuritySettings.findById(req.params.id);
-    if (!settings) return res.status(404).json({ message: "Security settings not found" });
-    res.json(settings);
+    const sys = await SystemSettings.findById(req.params.id);
+    if (!sys) return res.status(404).json({ success: false, message: "Not found" });
+    res.json({ success: true, data: sys });
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    res.status(400).json({ success: false, message: err.message });
+  }
+}
+
+exports.updateSystemSettings = async (req, res) => {
+  try {
+    const updated = await SystemSettings.findByIdAndUpdate(
+      req.params.id,
+      req.body,
+      { new: true }
+    );
+    if (!updated) return sendResponse(res, 404, false, "Not found");
+    sendResponse(res, 200, true, "System settings updated", updated);
+  } catch (err) {
+    sendResponse(res, 400, false, err.message);
   }
 };
 
-exports.updateSecurity = async (req, res) => {
+exports.deleteSystemSettings = async (req, res) => {
   try {
-    const settings = await SecuritySettings.findByIdAndUpdate(req.params.id, req.body, { new: true });
-    if (!settings) return res.status(404).json({ message: "Security settings not found" });
-    res.json(settings);
+    const deleted = await SystemSettings.findByIdAndDelete(req.params.id);
+    if (!deleted) return res.status(404).json({ success: false, message: "Not found" });
+    res.json({ success: true, message: "System settings deleted" });
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    res.status(400).json({ success: false, message: err.message });
   }
-};
+}
 
-exports.createSystem = async (req, res) => {
-  try {
-    const settings = new SystemSettings(req.body);
-    await settings.save();
-    res.status(201).json(settings);
-  } catch (err) {
-    res.status(500).json({ message: err.message });
-  }
-};
-
-exports.getSystem = async (req, res) => {
-  try {
-    const settings = await SystemSettings.find();
-    res.json(settings);
-  } catch (err) {
-    res.status(500).json({ message: err.message });
-  }
-};
-
-exports.getSystemById = async (req, res) => {
-  try {
-    const settings = await SystemSettings.findById(req.params.id);
-    if (!settings) return res.status(404).json({ message: "System settings not found" });
-    res.json(settings);
-  } catch (err) {
-    res.status(500).json({ message: err.message });
-  }
-};
-
-exports.updateSystem = async (req, res) => {
-  try {
-    const settings = await SystemSettings.findByIdAndUpdate(req.params.id, req.body, { new: true });
-    if (!settings) return res.status(404).json({ message: "System settings not found" });
-    res.json(settings);
-  } catch (err) {
-    res.status(500).json({ message: err.message });
-  }
-};
-
-exports.createAudit = async (req, res) => {
+exports.createAuditLog = async (req, res) => {
   try {
     const log = new AuditLogs(req.body);
-    await log.save();
-    res.status(201).json(log);
+    const saved = await log.save();
+    sendResponse(res, 201, true, "Audit log created", saved);
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    sendResponse(res, 400, false, err.message);
   }
 };
 
-exports.getAudit = async (req, res) => {
+exports.getAuditLogs = async (req, res) => {
   try {
-    const logs = await AuditLogs.find();
-    res.json(logs);
-  } catch (err) {
-    res.status(500).json({ message: err.message });
-  }
-};
+    const logs = await AuditLogs.find()
+      .populate("generalSettings")
+      .populate("emailSettings")
+      .populate("smsSettings")
+      .populate("whatsappSettings")
+      .populate("securitySettings")
+      .populate("systemSettings");
 
-exports.getAuditById = async (req, res) => {
-  try {
-    const log = await AuditLogs.findById(req.params.id);
-    if (!log) return res.status(404).json({ message: "Audit log not found" });
-    res.json(log);
+    sendResponse(res, 200, true, "Audit logs fetched", logs);
   } catch (err) {
-    res.status(500).json({ message: err.message });
-  }
-};
-
-exports.updateAudit = async (req, res) => {
-  try {
-    const log = await AuditLogs.findByIdAndUpdate(req.params.id, req.body, { new: true });
-    if (!log) return res.status(404).json({ message: "Audit log not found" });
-    res.json(log);
-  } catch (err) {
-    res.status(500).json({ message: err.message });
+    sendResponse(res, 400, false, err.message);
   }
 };

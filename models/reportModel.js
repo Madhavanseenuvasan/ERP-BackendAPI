@@ -1,124 +1,129 @@
 const mongoose = require("mongoose");
+const { Schema } = mongoose;
 
-const reportSchema = new mongoose.Schema({
-  reportType: {
-    type: String,
-    enum: ["Sales", "Inventory", "Finance", "AMC", "Leads", "Engineers", "Custom"],
-    required: true,
-  },
-
-  title: String,
-  description: String,
-  createdAt: { type: Date, default: Date.now },
-
-  sales: {
-    invoiceNo: String,
-    invoiceDate: Date,
-    orderNo: String,
-    orderDate: Date,
-    customerName: String,
-    customerCode: String,
-    productName: String,
-    productCode: String,
-    qty: Number,
-    rate: Number,
-    amount: Number,
-    discount: Number,
-    tax: Number,
-    netAmount: Number,
-    paymentMode: String,
-    paymentStatus: String,
-    salesPerson: String,
-    region: String,
-  },
-
-  inventory: {
-    itemCode: String,
-    itemName: String,
-    category: String,
-    uom: String,
-    openingStock: Number,
-    purchaseQty: Number,
-    salesQty: Number,
-    stockInHand: Number,
-    reorderLevel: Number,
-    supplierName: String,
-    warehouseLocation: String,
-    lastPurchaseDate: Date,
-    lastSalesDate: Date,
-  },
-
-  finance: {
-    voucherNo: String,
-    voucherDate: Date,
-    accountHead: String,
-    debit: Number,
-    credit: Number,
-    balance: Number,
-    narration: String,
-    paymentMode: String,
-    transactionRef: String,
-    bankName: String,
-    chequeNo: String,
-    chequeDate: Date,
-  },
-
-  amc: {
-    contractNo: String,
-    contractDate: Date,
-    customerName: String,
-    customerCode: String,
-    startDate: Date,
-    endDate: Date,
-    contractValue: Number,
-    status: { type: String, enum: ["Active", "Expired", "Renewed"] },
-    serviceEngineer: String,
-    totalVisits: Number,
-    completedVisits: Number,
-    pendingVisits: Number,
-  },
-
-  leads: {
-    leadNo: String,
-    leadDate: Date,
-    leadName: String,
-    companyName: String,
-    contactPerson: String,
-    contactNo: String,
-    email: String,
-    leadSource: String,
-    status: { type: String, enum: ["New", "Contacted", "Qualified", "Lost", "Converted"] },
-    assignedTo: String,
-    expectedValue: Number,
-    followUpDate: Date,
-  },
-
-  engineers: {
-    engineerCode: String,
-    engineerName: String,
-    designation: String,
-    department: String,
-    region: String,
-    specialization: String,
-    ticketsAssigned: Number,
-    ticketsResolved: Number,
-    slaBreaches: Number,
-    performanceRating: Number,
-    lastServiceDate: Date,
-  },
-
-  custom: {
-    fields: [
-      {
-        fieldName: String,
-        fieldType: { type: String, enum: ["String", "Number", "Date", "Boolean"] },
-        value: mongoose.Schema.Types.Mixed
-      }
-    ],
-    filters: mongoose.Schema.Types.Mixed,
-    generatedBy: String,
-  }
-
+const revenueSchema = new Schema({
+  totalRevenue: Number,
+  revenueChangePercent: Number,
+  monthlyGrowth: Number,
+  revenueTrend: [{ month: String, value: Number }],
+  revenueByClientType: [{
+    clientType: String,
+    value: Number,
+    percent: Number
+  }],
+  topRevenueClients: [{
+    name: String,
+    clientType: String,
+    value: Number
+  }]
 }, { timestamps: true });
 
-module.exports = mongoose.model("Report", reportSchema);
+
+const amcSchema = new Schema({
+  amcContractsTotal: Number,
+  amcContractsChangePercent: Number,
+  activeContracts: Number,
+  expiringSoonContracts: Number,
+  overdueContracts: Number,
+  contractValue: Number,
+  contractStatusDistribution: {
+    active: Number,
+    expiring: Number,
+    expired: Number
+  },
+  monthlyRenewals: [{ month: String, renewals: Number, newContracts: Number }],
+  visitComplianceRate: Number
+}, { timestamps: true });
+
+const ticketAnalyticsSchema = new Schema({
+  totalTickets: Number,
+  activeTickets: Number,
+  activeTicketsChangePercent: Number,
+  closedTickets: Number,
+  statusBreakdown: {
+    open: Number,
+    inProgress: Number,
+    resolved: Number,
+    closed: Number
+  },
+  priorityBreakdown: {
+    critical: Number,
+    high: Number,
+    medium: Number,
+    low: Number
+  },
+  averageTAT: Number,
+  tatDistribution: [{ range: String, count: Number }],
+  slaCompliance: Number,
+  slaComplianceChangePercent: Number
+}, { timestamps: true });
+
+const inventorySchema = new Schema({
+  totalInventoryValue: Number,
+  categories: [{ name: String, value: Number }],
+  totalItems: Number,
+  lowStockItems: Number,
+  topMovingItems: [{ name: String, value: Number, units: Number }]
+}, { timestamps: true });
+
+
+const leadSchema = new Schema({
+  totalLeads: Number,
+  convertedLeads: Number,
+  conversionRate: Number,
+  topPerformerRate: Number,
+  leadSources: {
+    website: Number,
+    referral: Number,
+    coldCall: Number,
+    social: Number
+  },
+  salesPipeline: {
+    prospect: Number,
+    qualified: Number,
+    proposal: Number,
+    negotiation: Number,
+    closed: Number
+  },
+  salesTeamPerformance: [{ name: String, conversions: Number, rate: Number }]
+}, { timestamps: true });
+
+const engineerPerformanceSchema = new Schema({
+  totalEngineers: Number,
+  avgTicketsPerEngineer: Number,
+  avgResolutionTime: Number,
+  avgRating: Number,
+  engineerPerformance: [{
+    name: String,
+    code: String,
+    role: String,
+    ticketsCompleted: Number,
+    avgTat: Number,
+    slaCompliance: Number,
+    customerRating: Number,
+    performance: String
+  }],
+  teamPerformanceTrend: [{ month: String, productivity: Number, quality: Number }]
+}, { timestamps: true });
+
+const reportSchema = new Schema({
+  revenue: { type: Schema.Types.ObjectId, ref: "Revenue", required: true },
+  amc: { type: Schema.Types.ObjectId, ref: "AMCModel", required: true },
+  ticketAnalytics: { type: Schema.Types.ObjectId, ref: "TicketAnalytics", required: true },
+  inventory: { type: Schema.Types.ObjectId, ref: "Inventory", required: true },
+  leadConversion: { type: Schema.Types.ObjectId, ref: "LeadConversion", required: true },
+  engineerPerformance: { type: Schema.Types.ObjectId, ref: "EngineerPerformance", required: true }
+}, { timestamps: true });
+
+const revenue = mongoose.model("Revenue", revenueSchema);
+const amc = mongoose.model("AMCModel", amcSchema);
+const ticketAnalytics = mongoose.model("TicketAnalytics", ticketAnalyticsSchema);
+const inventory = mongoose.model("Inventory", inventorySchema);
+const leadConversion = mongoose.model("LeadConversion", leadSchema);
+const engineerPerformance = mongoose.model("EngineerPerformance", engineerPerformanceSchema);
+const report = mongoose.model("Report", reportSchema);
+
+module.exports = {
+  revenue, amc, ticketAnalytics, inventory, leadConversion, engineerPerformance, report
+};
+

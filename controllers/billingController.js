@@ -1,63 +1,115 @@
-const { Invoice, Ledger, Payment } = require('../models/billingModel');
+const { Invoice, Ledger, Payment, Customer, Engineer, Quotation } = require('../models/billingModel');
+
+const ALLOWED_STATUS = ["Draft", "Sent", "Paid", "Overdue", "Cancelled", "Partial"];
 
 
-const ALLOWED_STATUS = ["Paid", "Unpaid", "Partial", "Pending"];
+exports.createCustomer = async (req, res) => {
+  try {
+    const customer = new Customer(req.body);
+    await customer.save();
+    res.status(201).json(customer);
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+};
+exports.getCustomers = async (req, res) => {
+  try {
+    const customers = await Customer.find();
+    res.json(customers);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+
+exports.createEngineer = async (req, res) => {
+  try {
+    const engineer = new Engineer(req.body);
+    await engineer.save();
+    res.status(201).json(engineer);
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+};
+exports.getEngineers = async (req, res) => {
+  try {
+    const engineers = await Engineer.find();
+    res.json(engineers);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+
+exports.createQuotation = async (req, res) => {
+  try {
+    const quotation = new Quotation(req.body);
+    await quotation.save();
+    res.status(201).json(quotation);
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+};
+exports.getQuotations = async (req, res) => {
+  try {
+    const quotations = await Quotation.find().populate('customer').populate('engineer');
+    res.json(quotations);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
 
 exports.createInvoice = async (req, res) => {
   try {
     const {
-      type,
       invoiceNo,
-      vendorOrCustomer,
+      customer,
+      engineer,
       items,
-      totalAmount,
-      gstAmount,
-      netAmount,
-      status = "Pending",
-      date,
-      category = "General",
-      brand = ""
+      issueDate,
+      dueDate,
+      status = "Draft",
+      notes,
+      termsConditions
     } = req.body;
 
-    if (
-      !type ||
-      !invoiceNo ||
-      !vendorOrCustomer ||
-      !items?.length ||
-      !date ||
-      totalAmount === undefined ||
-      netAmount === undefined
-    ) {
+    if (!invoiceNo || !customer || !items?.length) {
       return res.status(400).json({ error: "Missing required fields" });
     }
-
-    if (!["purchase", "sales"].includes(type)) {
-      return res.status(400).json({ error: "Invalid invoice type" });
-    }
-
     if (!ALLOWED_STATUS.includes(status)) {
       return res.status(400).json({ error: "Invalid status value" });
     }
 
+    
+    let subtotal = 0, totalTax = 0, grandTotal = 0;
+    items.forEach(item => {
+      const lineTotal = (item.unitPrice * item.quantity) - (item.discount || 0);
+      subtotal += lineTotal;
+      totalTax += (lineTotal * (item.gst || 0) / 100);
+    });
+    grandTotal = subtotal + totalTax;
+
     const invoice = await Invoice.create({
-      type,
       invoiceNo,
-      vendorOrCustomer,
+      customer,
+      engineer,
       items,
-      totalAmount,
-      gstAmount,
-      netAmount,
-      category,
-      brand,
+      issueDate,
+      dueDate,
+      subtotal,
+      totalTax,
+      grandTotal,
       status,
-      date
+      notes,
+      termsConditions
     });
 
     await Ledger.create({
       module: "billing",
-      account: vendorOrCustomer,
-      debit: netAmount,
-      credit: 0,
+      account: customer,
+      type: "Debit",
+      amount: grandTotal,
       description: `Invoice Created: ${invoiceNo}`,
       relatedInvoice: invoice._id
     });
@@ -68,8 +120,6 @@ exports.createInvoice = async (req, res) => {
   }
 };
 
-
-
 exports.getInvoices = async (req, res) => {
   try {
     const { search, status, startDate, endDate, page = 1, limit = 10 } = req.query;
@@ -77,18 +127,18 @@ exports.getInvoices = async (req, res) => {
 
     if (search) {
       filter.$or = [
-        { invoiceNo: { $regex: search, $options: 'i' } },
-        { vendorOrCustomer: { $regex: search, $options: 'i' } },
-        { "items.name": { $regex: search, $options: 'i' } }
+        { invoiceNo: { $regex: search, $options: 'i' } }
       ];
     }
     if (status) filter.status = status;
     if (startDate && endDate) {
-      filter.date = { $gte: new Date(startDate), $lte: new Date(endDate) };
+      filter.issueDate = { $gte: new Date(startDate), $lte: new Date(endDate) };
     }
 
     const skip = (parseInt(page) - 1) * parseInt(limit);
     const invoices = await Invoice.find(filter)
+      .populate('customer')
+      .populate('engineer')
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(parseInt(limit));
@@ -101,17 +151,15 @@ exports.getInvoices = async (req, res) => {
   }
 };
 
-
 exports.getSingleInvoice = async (req, res) => {
   try {
-    const invoice = await Invoice.findById(req.params.id);
+    const invoice = await Invoice.findById(req.params.id).populate('customer').populate('engineer');
     if (!invoice) return res.status(404).json({ error: 'Not Found' });
     res.json(invoice);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 };
-
 
 exports.updateInvoice = async (req, res) => {
   try {
@@ -126,7 +174,6 @@ exports.updateInvoice = async (req, res) => {
   }
 };
 
-
 exports.deleteInvoice = async (req, res) => {
   try {
     const deleted = await Invoice.findByIdAndDelete(req.params.id);
@@ -140,8 +187,8 @@ exports.deleteInvoice = async (req, res) => {
 
 exports.makePayment = async (req, res) => {
   try {
-    const { amount, method, reference } = req.body;
-  const id = req.params.id;
+    const { amount, method, referenceNo } = req.body;
+    const id = req.params.id;
 
     if (!amount || amount <= 0) {
       return res.status(400).json({ error: 'Invalid payment amount' });
@@ -153,36 +200,39 @@ exports.makePayment = async (req, res) => {
     }
 
     await Payment.create({
-      type: 'received',
-      invoiceId: invoice._id,
+      invoice: invoice._id,
       amount,
       method,
-      reference,
+      referenceNo,
       date: new Date()
     });
 
     const paidAmount = (await Payment.aggregate([
-      { $match: { invoiceId: invoice._id } },
+      { $match: { invoice: invoice._id } },
       { $group: { _id: null, totalPaid: { $sum: '$amount' } } }
     ]))[0]?.totalPaid || 0;
 
-    if (paidAmount >= invoice.netAmount) {
-      invoice.status = 'paid';
+    if (paidAmount >= invoice.grandTotal) {
+      invoice.status = 'Paid';
+      invoice.balanceDue = 0;
     } else if (paidAmount > 0) {
-      invoice.status = 'partial';
+      invoice.status = 'Partial';
+      invoice.balanceDue = invoice.grandTotal - paidAmount;
     } else {
-      invoice.status = 'unpaid';
+      invoice.status = 'Draft';
+      invoice.balanceDue = invoice.grandTotal;
     }
 
     await invoice.save();
 
     await Ledger.create({
       module: 'billing',
-      account: invoice.vendorOrCustomer,
-      debit: 0,
-      credit: amount,
+      account: invoice.customer,
+      type: 'Credit',
+      amount,
       description: `Payment received for Invoice: ${invoice.invoiceNo}`,
-      relatedInvoice: invoice._id
+      relatedInvoice: invoice._id,
+      relatedPayment: invoice._id
     });
 
     res.status(200).json({ message: 'Payment recorded successfully', paidAmount, status: invoice.status });
@@ -198,7 +248,8 @@ exports.getTaxSummary = async (req, res) => {
     let gstTotal = 0;
     invoices.forEach(inv => {
       inv.items.forEach(item => {
-        gstTotal += (item.price * item.quantity) * (item.taxPercent / 100);
+        const lineTotal = (item.unitPrice * item.quantity) - (item.discount || 0);
+        gstTotal += (lineTotal * (item.gst || 0) / 100);
       });
     });
     res.json({ GST: gstTotal });

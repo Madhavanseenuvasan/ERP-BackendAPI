@@ -1,7 +1,5 @@
-const express = require("express");
+const express = require('express')
 const router = express.Router();
-const authMiddleware = require('../middleware/authMiddleware');
-const authorizeRoles = require('../middleware/roleMiddleware');
 
 const {
   newContract,
@@ -20,14 +18,15 @@ const {
   updateEquipmentById,
   deleteEquipmentById,
   getDashboardSummary,
+  getContracts,
 } = require('../controllers/amcController');
 const { getDashboardReport } = require("../controllers/amcReportController");
 
 
 
-router.route("/contracts").post(authMiddleware, authorizeRoles("SuperAdmin", "Admin"),newContract);
+router.route("/contracts").get(getContracts).post(newContract);
 
-router.route("/contracts/:id").put(authMiddleware, authorizeRoles("SuperAdmin", "Admin"),updateContractById);
+router.route("/contracts/:id").put(updateContractById);
 
 router.route("/contracts/:id").get(getContractById);
 router.route("/remainders").get(ContractRemainder);
@@ -41,7 +40,7 @@ router.route('/client/:id').get(clientById);
 
 router.route('/updateclient/:id').put(updateClientById);
 
-router.route('/deleteclient/:id').delete(authMiddleware, authorizeRoles("SuperAdmin", "Admin"),deleteClientById)
+router.route('/deleteclient/:id').delete(deleteClientById);
 
 router.route('/allequipments').get(getAllEquipments);
 router.route('/equipment/:id').get(equipmentById);

@@ -1,31 +1,19 @@
-const express = require("express");
-const {
-  register,
-  logIn,
-  profile,
-  updateProfile,
-  deleteProfile,
-  forgotPassword,
-  resetPassword,
-  updateUserStatus,
-  logout,
-  profileById,
-} = require("../controllers/userController");
-const authmiddleware = require("../middleware/authMiddleware");
+const express = require('express');
 const router = express.Router();
+const {createUser, getUsers, getUserById, updateUser, deleteUser, register, login, logout, resetPassword, forgotPassword} = require('../controllers/userController')
 
-router.route("/register").post(register);
-router.route("/login").post(logIn);
-router.route("/logout", authmiddleware).post(logout);
-router.route("/reset/:token").post(resetPassword);
-router.route("/forgot").post(forgotPassword);
 
-router.route("/profile").get(profile);
-router.route('/profile/:id').get(profileById)
+router.route('/register').post(register);
+router.route('/login').post(login);
+router.route('/logout').post(logout);
+router.route('/resetpassword/:token').post(resetPassword);
+router.route('/forgotpassword').post(forgotPassword);
 
-router.route("/profile/:id").put(updateProfile);
-router.route("/profile/:id/activate").put(updateUserStatus);
-
-router.route("/profile/:id").delete(deleteProfile);
+router.route('/users').post(createUser);
+router.route('/users').get(getUsers);
+router.route('/users/:id').get(getUserById);
+router.route('/users/:id').put(updateUser);
+router.route('/users/:id').delete(deleteUser);
 
 module.exports = router;
+

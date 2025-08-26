@@ -1,72 +1,128 @@
 const mongoose = require('mongoose');
 
-const invoiceItemSchema = new mongoose.Schema(
-  {
-    name: { type: String, required: true },
-    quantity: { type: Number, required: true, min: 1 },
-    price: { type: Number, required: true, min: 0 },
-    taxPercent: { type: Number, default: 0 },
-    uom: { type: String, default: "pcs" },
-    partNo: { type: String, default: "" } 
-  },
-  { _id: false }
-);
 
-const invoiceSchema = new mongoose.Schema(
-  {
-    type: { type: String, enum: ["purchase", "sales"], required: true },
-    invoiceNo: { type: String, required: true },
-    date: { type: Date, default: Date.now },
-    vendorOrCustomer: { type: String, required: false },
-    items: [invoiceItemSchema],
-    totalAmount: { type: Number, required: true },
-    gstAmount: { type: Number, default: 0 },
-    netAmount: { type: Number, required: true },
-    category: { type: String, default: "General" },
-    brand: { type: String, default: "" },
-    status: { 
-      type: String, 
-      enum: ["Paid", "Unpaid", "Partial", "Pending"], 
-      default: "Pending" 
-    },
-    createdAt: { type: Date, default: Date.now },
-    updatedAt: { type: Date, default: Date.now }
-  }
-);
+const customerSchema = new mongoose.Schema({
+  name: { type: String, required: true },
+  companyName: String,
+  email: String,
+  phone: String,
+  gstNumber: String,
+  panNumber: String,
+  billToAddress: { type: String, required: true },
+  shipToAddress: String,
+  isActive: { type: Boolean, default: true }
+}, { timestamps: true });
 
 
-invoiceSchema.pre("save", function (next) {
-  this.updatedAt = Date.now();
-  next();
+const engineerSchema = new mongoose.Schema({
+  name: { type: String, required: true },
+  email: String,
+  phone: String,
+  isActive: { type: Boolean, default: true }
+}, { timestamps: true });
+
+
+const quotationItemSchema = new mongoose.Schema({
+  productCode: String,
+  productName: String,
+  hsnSac: String,
+  gst: Number,
+  quantity: Number,
+  uom: String,
+  unitPrice: Number,
+  discount: Number,
+  total: Number
 });
+
+
+const quotationSchema = new mongoose.Schema({
+  quotationNo: { type: String, required: true },
+  customer: { type: mongoose.Schema.Types.ObjectId, ref: 'Customer', required: true },
+  engineer: { type: mongoose.Schema.Types.ObjectId, ref: 'Engineer' },
+  billToAddress: String,
+  shipToAddress: String,
+  issueDate: { type: Date, default: Date.now },
+  validUntil: Date,
+  status: { type: String, enum: ['Quotation', 'Converted', 'Expired'], default: 'Quotation' },
+  items: [quotationItemSchema],
+  notes: String,
+  termsConditions: String,
+  subtotal: Number,
+  totalTax: Number,
+  overallDiscount: Number,
+  grandTotal: Number,
+  convertedInvoice: { type: mongoose.Schema.Types.ObjectId, ref: 'Invoice' }
+}, { timestamps: true });
+
+
+const invoiceItemSchema = new mongoose.Schema({
+  partNo: String,
+  productName: String,
+  description: String,
+  hsnSac: String,
+  gst: Number,
+  quantity: Number,
+  uom: String,
+  unitPrice: Number,
+  discount: Number,
+  total: Number
+});
+
+
+const invoiceSchema = new mongoose.Schema({
+  invoiceNo: { type: String, required: true },
+  customer: { type: mongoose.Schema.Types.ObjectId, ref: 'Customer', required: true },
+  engineer: { type: mongoose.Schema.Types.ObjectId, ref: 'Engineer' },
+  billToAddress: String,
+  shipToAddress: String,
+  issueDate: { type: Date, default: Date.now },
+  dueDate: Date,
+  status: { 
+    type: String, 
+    enum: ['Draft', 'Sent', 'Paid', 'Overdue', 'Cancelled', 'Partial'], 
+    default: 'Draft' 
+  },
+  items: [invoiceItemSchema],
+  subtotal: Number,
+  totalTax: Number,
+  overallDiscount: Number,
+  grandTotal: Number,
+  balanceDue: { type: Number, default: 0 },
+  currency: { type: String, default: 'INR' },
+  exchangeRate: { type: Number, default: 1 },
+  notes: String,
+  termsConditions: String
+}, { timestamps: true });
+
 
 const paymentSchema = new mongoose.Schema({
-  type: { type: String, enum: ['received', 'made'], required: true },
-  invoiceId: { type: mongoose.Schema.Types.ObjectId, ref: 'Invoice', required: true },
-  amount: { type: Number, required: true, min: 0 },
-  method: { 
-    type: String, 
-    enum: ['cash', 'bank transfer', 'credit card'], 
-    required: true 
-  },
-  date: { type: Date, default: Date.now },
-  reference: String
-});
+  invoice: { type: mongoose.Schema.Types.ObjectId, ref: 'Invoice', required: true },
+  amount: { type: Number, required: true },
+  method: { type: String, enum: ['Manual', 'Gateway'], default: 'Manual' },
+  status: { type: String, enum: ['Paid', 'Partial', 'Failed'], default: 'Paid' },
+  referenceNo: String, // UPI/cheque/transaction ID
+  notes: String,
+  date: { type: Date, default: Date.now }
+}, { timestamps: true });
+
 
 const ledgerSchema = new mongoose.Schema({
   entryDate: { type: Date, default: Date.now },
   module: { type: String, enum: ['billing', 'purchase'], required: true },
   account: { type: String, required: true },
-  debit: { type: Number, default: 0 },
-  credit: { type: Number, default: 0 },
+  type: { type: String, enum: ['Debit', 'Credit'], required: true },
+  amount: { type: Number, required: true },
   description: String,
   relatedInvoice: { type: mongoose.Schema.Types.ObjectId, ref: 'Invoice' },
-  relatedPayment: { type: mongoose.Schema.Types.ObjectId, ref: 'InvoicePayment' },
+  relatedPayment: { type: mongoose.Schema.Types.ObjectId, ref: 'Payment' },
   user: String
 }, { timestamps: true });
 
-module.exports = {
-  Invoice: mongoose.model('Invoice', invoiceSchema),
-  Payment: mongoose.model('InvoicePayment', paymentSchema),
-  Ledger: mongoose.model('Ledger', ledgerSchema)
-};
+const Customer = mongoose.model('Customer', customerSchema);
+const Engineer = mongoose.model('Engineer', engineerSchema);
+const Quotation = mongoose.model('Quotation', quotationSchema);
+const Invoice = mongoose.model('Invoice', invoiceSchema);
+const Payment = mongoose.model('Payment', paymentSchema);
+const Ledger = mongoose.model('Ledger', ledgerSchema);
+
+module.exports = { Customer, Engineer, Quotation, Invoice, Payment, Ledger };
