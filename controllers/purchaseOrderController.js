@@ -88,16 +88,18 @@ exports.createPurchaseOrder = async (req, res) => {
       deliveryStatus
     });
 
-    // Ledger entry
-    await Ledger.create({
-      module: 'purchase',
-      account: 'Accounts Payable',
-      debit: po.grandTotal,
-      credit: 0,
-      description: `PO Created: ${po.poNumber}`,
-      entryDate: new Date(),
-      relatedInvoice: po._id
-    });
+  await Ledger.create({
+    module: 'purchase',
+    account: 'Accounts Payable',
+    debit: po.grandTotal,
+    credit: 0,
+    amount: po.grandTotal,
+    type: 'debit',
+    description: `PO Created: ${po.poNumber}`,
+    entryDate: new Date(),
+    relatedInvoice: po._id
+  });
+
 
     res.status(201).json(po);
   } catch (error) {
@@ -166,16 +168,18 @@ exports.makePayment = async (req, res) => {
 
     await purchase.save();
 
-    // Ledger entry
     await Ledger.create({
-      module: 'purchase',
-      account: method === 'cash' ? 'Cash' : 'Bank',
-      debit: 0,
-      credit: amount,
-      description: `Payment made for PO ${purchase.poNumber}`,
-      entryDate: new Date(),
-      relatedPayment: purchase._id
-    });
+    module: 'purchase',
+    account: method === 'cash' ? 'Cash' : 'Bank',
+    debit: 0,
+    credit: amount,
+    amount: amount,
+    type: 'credit',
+    description: `Payment made for PO ${purchase.poNumber}`,
+    entryDate: new Date(),
+    relatedPayment: purchase._id
+  });
+
 
     res.status(200).json({
       message: 'Purchase order payment recorded successfully',
@@ -195,13 +199,16 @@ exports.createExpense = async (req, res) => {
     const expense = await Expense.create({ description, category, amount, date, paidTo, paymentMethod, gstIncluded });
 
     await Ledger.create({
-      module: 'purchase',
-      account: category,
-      debit: amount,
-      credit: 0,
-      description: `Expense: ${description}`,
-      entryDate: new Date()
-    });
+    module: 'purchase',
+    account: category,
+    debit: amount,
+    credit: 0,
+    amount: amount,
+    type: 'debit',
+    description: `Expense: ${description}`,
+    entryDate: new Date()
+  });
+
 
     res.status(201).json(expense);
   } catch (error) {
