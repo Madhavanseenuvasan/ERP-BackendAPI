@@ -1,5 +1,4 @@
 const { PurchaseOrder, PurchasePayment, Expense } = require('../models/purchaseOrderModel');
-const { Ledger } = require('../models/billingModel');
 
 exports.getPurchaseOrder = async (req, res) => {
   try {
@@ -88,19 +87,6 @@ exports.createPurchaseOrder = async (req, res) => {
       deliveryStatus
     });
 
-  await Ledger.create({
-    module: 'purchase',
-    account: 'Accounts Payable',
-    debit: po.grandTotal,
-    credit: 0,
-    amount: po.grandTotal,
-    type: 'debit',
-    description: `PO Created: ${po.poNumber}`,
-    entryDate: new Date(),
-    relatedInvoice: po._id
-  });
-
-
     res.status(201).json(po);
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -168,19 +154,6 @@ exports.makePayment = async (req, res) => {
 
     await purchase.save();
 
-    await Ledger.create({
-    module: 'purchase',
-    account: method === 'cash' ? 'Cash' : 'Bank',
-    debit: 0,
-    credit: amount,
-    amount: amount,
-    type: 'credit',
-    description: `Payment made for PO ${purchase.poNumber}`,
-    entryDate: new Date(),
-    relatedPayment: purchase._id
-  });
-
-
     res.status(200).json({
       message: 'Purchase order payment recorded successfully',
       paidAmount,
@@ -197,18 +170,6 @@ exports.createExpense = async (req, res) => {
   try {
     const { description, category, amount, date, paidTo, paymentMethod, gstIncluded } = req.body;
     const expense = await Expense.create({ description, category, amount, date, paidTo, paymentMethod, gstIncluded });
-
-    await Ledger.create({
-    module: 'purchase',
-    account: category,
-    debit: amount,
-    credit: 0,
-    amount: amount,
-    type: 'debit',
-    description: `Expense: ${description}`,
-    entryDate: new Date()
-  });
-
 
     res.status(201).json(expense);
   } catch (error) {
