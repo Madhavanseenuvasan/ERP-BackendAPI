@@ -1,69 +1,50 @@
-const mongoose = require("mongoose");
-const { Schema } = mongoose;
+const mongoose = require('mongoose');
+const Schema = mongoose.Schema;
 
-const clientSchema = new Schema(
-  {
-    name: { type: String, required: true },
-    email: { type: String },
-    phoneNumber: { type: String },
-    address: { type: String },
-  },
-  { timestamps: true }
-);
+const AMCContractSchema = new Schema({
+  customer: { type: String, required: true }, 
+  equipmentProducts: [{ type: String }],      
+  emergencyContactHours: { type: String },    
+  coverageArea: { type: String },             
+  responseTime: { type: Number },            
+  survey: {
+    date: { type: Date },
+    siteConditions: { type: String },
+    surveyor: { type: String },
+    accessibility: { type: String },
+    powerRequirements: { type: String },
+    environmentalFactors: { type: String },
+    recommendations: { type: String }
+  },                                         
+  equipmentAssessment: [{
+    equipmentName: { type: String },
+    age: { type: Number },
+    maintenanceHistory: { type: String },
+    recommendedSchedule: { type: String, enum: ['Monthly', 'Weekly', 'Quarterly', 'Bi-annual'] },
+    overallCondition: { type: String, enum: ['Excellent', 'Good', 'Fair', 'Poor'] },
+    estimatedAnnualPartsCost: { type: Number }
+  }],                                         // Assessment for each equipment [attached_file:1]
+  servicePlanning: {
+    visitFrequency: { type: String, enum: ['Monthly', 'Weekly', 'Quarterly', 'Bi-annual'] },
+    serviceTypesIncluded: [{ type: String, enum: ['Preventive Maintenance', 'Predictive Maintenance', 'Emergency Response'] }],
+    visitDuration: { type: Number },
+    requiredSkills: [{ type: String, enum: ['Electrical', 'Mechanical', 'Electronics', 'Fuel Systems', 'Controls'] }],
+    partsWarrantyMonths: { type: Number },
+    partsConsumablesIncluded: { type: Boolean }
+  },                                          // Service plan details [attached_file:1]
+  contractDetails: {
+    startDate: { type: Date },
+    endDate: { type: Date },
+    contractValue: { type: Number },
+    termsAndConditions: { type: String },
+    renewalTerms: { type: String },
+    billingCycle: { type: String, enum: ['Monthly', 'Quarterly', 'Half-yearly', 'Yearly'] },
+    scheduledVisits: { type: Number },
+    discountPercent: { type: Number }
+  },                                         
+  products: [{ type: String }],               
+  durationMonths: { type: Number },           
+  status: { type: String, enum: ['Draft', 'Active', 'Expired', 'Renewed'], default: 'Draft' }
+}, { timestamps: true });
 
-const equipmentSchema = new Schema(
-  {
-    name: { type: String },
-    serialNumber: { type: String },
-    model: { type: String },
-    location: { type: String },
-  },
-  { timestamps: true }
-);
-
-const amcSchema = new Schema(
-  {
-    client: { type: Schema.Types.ObjectId, ref: 'Client', required: true },
-    equipment: [{ type: Schema.Types.ObjectId, ref: 'Equipment' }],
-    startDate: { type: Date, required: true },
-    endDate: { type: Date, required: true },
-    amount: { type: Number },
-    currency: { type: String },
-    status: {
-      type: String,
-      enum: ["Active", "Expired", "Terminated"],
-      default: "Active",
-    },
-    term: { type: String },
-    autoRenew: { type: Boolean, default: false },
-    lastServiceDate: { type: Date },
-    nextServiceDate: { type: Date },
-  },  
-  { timestamps: true, toJSON: { virtuals: true }, toObject: { virtuals: true } }
-);
-
-amcSchema.virtual("contractDuration").get(function () {
-  if (this.startDate && this.endDate) {
-    const msPerDay = 1000 * 60 * 60 * 24;
-    const duration = Math.ceil((this.endDate - this.startDate) / msPerDay);
-    return `${duration} days`;
-  }
-  return null;
-});
-
-amcSchema.pre("save", function (next) {
-  const today = new Date();
-  if (this.endDate < today && this.status === "Active") {
-    this.status = "Expired";
-  }
-  next();
-});
-
-amcSchema.index({ contractNumber: 1 });
-amcSchema.index({ client: 1 });
-amcSchema.index({ status: 1 });
-
-const client = mongoose.model("Client", clientSchema);
-const equipment = mongoose.model("Equipment", equipmentSchema);
-const amcModel = mongoose.model("AMC", amcSchema);
-module.exports = {client, equipment,amcModel};
+module.exports = mongoose.model('AMCContract', AMCContractSchema);
