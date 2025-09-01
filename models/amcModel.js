@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-const Schema = mongoose.Schema;
+const {Schema }= mongoose;
 
 const AMCContractSchema = new mongoose.Schema(
   {
@@ -14,7 +14,7 @@ const AMCContractSchema = new mongoose.Schema(
       trim: true,
     },
     contractValue: {
-      type: String, // Could also be Number if it's monetary
+      type: String, 
     },
     startDate: {
       type: Date,
@@ -25,7 +25,7 @@ const AMCContractSchema = new mongoose.Schema(
     },
     billingCycle: {
       type: String,
-      enum: ["Monthly", "Quarterly", "Half-Yearly", "Yearly"], // example cycles
+      enum: ["Monthly", "Quarterly", "Half-Yearly", "Yearly"], 
     },
     scheduledVisits: {
       type: String,
@@ -115,9 +115,9 @@ const AMCContractSchema = new mongoose.Schema(
     },
   },
   {
-    timestamps: true, // Automatically add createdAt & updatedAt
+    timestamps: true, 
   }
 );
 
-
-module.exports = mongoose.model('AMCContract', AMCContractSchema);
+const amcModel=mongoose.model('AMCContract', AMCContractSchema);
+module.exports = amcModel

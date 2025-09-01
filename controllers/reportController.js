@@ -1,4 +1,7 @@
-const {revenue,amc,ticketAnalytics,inventory,leadConversion,engineerPerformance,report}=require("../models/reportModel")
+const amcModel = require("../models/amcModel");
+const { productModel } = require("../models/inventoryModel");
+const {revenue,ticketAnalytics,leadConversion,engineerPerformance,report}=require("../models/reportModel")
+
 
 exports.createRevenue = async (req, res) => {
   try {
@@ -54,62 +57,15 @@ exports.deleteRevenue = async (req, res) => {
   }
 };
 
-exports.createAMC = async (req, res) => {
-  try {
-    const newAMC = await amc.create(req.body);
-    res.status(201).json(newAMC);
-  } catch (err) {
-    res.status(400).json({ message: err.message });
-  }
-};
-
 exports.getAllAMC = async (req, res) => {
   try {
-    const allAMC = await amc.find();
+    const allAMC = await amcModel.find();
     res.status(200).json(allAMC);
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
 };
 
-exports.getAMCById = async (req, res) => {
-  try {
-    const amcRecord = await amc.findById(req.params.id);
-    if (!amcRecord) return res.status(404).json({ message: "AMC record not found" });
-    res.status(200).json(amcRecord);
-  } catch (err) {
-    res.status(500).json({ message: err.message });
-  }
-};
-
-exports.updateAMC = async (req, res) => {
-  try {
-    const updated = await amc.findByIdAndUpdate(req.params.id, req.body, { new: true });
-    if (!updated) return res.status(404).json({ message: "AMC record not found" });
-    res.status(200).json(updated);
-  } catch (err) {
-    res.status(400).json({ message: err.message });
-  }
-};
-
-exports.deleteAMC = async (req, res) => {
-  try {
-    const deleted = await amc.findByIdAndDelete(req.params.id);
-    if (!deleted) return res.status(404).json({ message: "AMC record not found" });
-    res.status(200).json({ message: "AMC record deleted successfully" });
-  } catch (err) {
-    res.status(500).json({ message: err.message });
-  }
-};
-
-exports.createTicketAnalytics = async (req, res) => {
-  try {
-    const newTicket = await ticketAnalytics.create(req.body);
-    res.status(201).json(newTicket);
-  } catch (err) {
-    res.status(400).json({ message: err.message });
-  }
-};
 
 exports.getAllTicketAnalytics = async (req, res) => {
   try {
@@ -120,89 +76,12 @@ exports.getAllTicketAnalytics = async (req, res) => {
   }
 };
 
-exports.getTicketAnalyticsById = async (req, res) => {
-  try {
-    const ticket = await ticketAnalytics.findById(req.params.id);
-    if (!ticket) return res.status(404).json({ message: "Ticket record not found" });
-    res.status(200).json(ticket);
-  } catch (err) {
-    res.status(500).json({ message: err.message });
-  }
-};
-
-exports.updateTicketAnalytics = async (req, res) => {
-  try {
-    const updated = await ticketAnalytics.findByIdAndUpdate(req.params.id, req.body, { new: true });
-    if (!updated) return res.status(404).json({ message: "Ticket record not found" });
-    res.status(200).json(updated);
-  } catch (err) {
-    res.status(400).json({ message: err.message });
-  }
-};
-
-exports.deleteTicketAnalytics = async (req, res) => {
-  try {
-    const deleted = await ticketAnalytics.findByIdAndDelete(req.params.id);
-    if (!deleted) return res.status(404).json({ message: "Ticket record not found" });
-    res.status(200).json({ message: "Ticket record deleted successfully" });
-  } catch (err) {
-    res.status(500).json({ message: err.message });
-  }
-};
-exports.createInventory = async (req, res) => {
-  try {
-    const newInv = await inventory.create(req.body);
-    res.status(201).json(newInv);
-  } catch (err) {
-    res.status(400).json({ message: err.message });
-  }
-};
-
 exports.getAllInventory = async (req, res) => {
   try {
-    const allInv = await inventory.find();
+    const allInv = await productModel.find();
     res.status(200).json(allInv);
   } catch (err) {
     res.status(500).json({ message: err.message });
-  }
-};
-
-exports.getInventoryById = async (req, res) => {
-  try {
-    const inv = await inventory.findById(req.params.id);
-    if (!inv) return res.status(404).json({ message: "Inventory record not found" });
-    res.status(200).json(inv);
-  } catch (err) {
-    res.status(500).json({ message: err.message });
-  }
-};
-
-exports.updateInventory = async (req, res) => {
-  try {
-    const updated = await inventory.findByIdAndUpdate(req.params.id, req.body, { new: true });
-    if (!updated) return res.status(404).json({ message: "Inventory record not found" });
-    res.status(200).json(updated);
-  } catch (err) {
-    res.status(400).json({ message: err.message });
-  }
-};
-
-exports.deleteInventory = async (req, res) => {
-  try {
-    const deleted = await inventory.findByIdAndDelete(req.params.id);
-    if (!deleted) return res.status(404).json({ message: "Inventory record not found" });
-    res.status(200).json({ message: "Inventory record deleted successfully" });
-  } catch (err) {
-    res.status(500).json({ message: err.message });
-  }
-};
-
-exports.createLeadConversion = async (req, res) => {
-  try {
-    const newLead = await leadConversion.create(req.body);
-    res.status(201).json(newLead);
-  } catch (err) {
-    res.status(400).json({ message: err.message });
   }
 };
 
@@ -235,16 +114,6 @@ exports.updateLeadConversion = async (req, res) => {
   }
 };
 
-exports.deleteLeadConversion = async (req, res) => {
-  try {
-    const deleted = await leadConversion.findByIdAndDelete(req.params.id);
-    if (!deleted) return res.status(404).json({ message: "Lead record not found" });
-    res.status(200).json({ message: "Lead record deleted successfully" });
-  } catch (err) {
-    res.status(500).json({ message: err.message });
-  }
-};
-
 exports.createEngineerPerformance = async (req, res) => {
   try {
     const newEng = await engineerPerformance.create(req.body);
@@ -258,36 +127,6 @@ exports.getAllEngineerPerformance = async (req, res) => {
   try {
     const allEng = await engineerPerformance.find();
     res.status(200).json(allEng);
-  } catch (err) {
-    res.status(500).json({ message: err.message });
-  }
-};
-
-exports.getEngineerPerformanceById = async (req, res) => {
-  try {
-    const eng = await engineerPerformance.findById(req.params.id);
-    if (!eng) return res.status(404).json({ message: "Engineer record not found" });
-    res.status(200).json(eng);
-  } catch (err) {
-    res.status(500).json({ message: err.message });
-  }
-};
-
-exports.updateEngineerPerformance = async (req, res) => {
-  try {
-    const updated = await engineerPerformance.findByIdAndUpdate(req.params.id, req.body, { new: true });
-    if (!updated) return res.status(404).json({ message: "Engineer record not found" });
-    res.status(200).json(updated);
-  } catch (err) {
-    res.status(400).json({ message: err.message });
-  }
-};
-
-exports.deleteEngineerPerformance = async (req, res) => {
-  try {
-    const deleted = await engineerPerformance.findByIdAndDelete(req.params.id);
-    if (!deleted) return res.status(404).json({ message: "Engineer record not found" });
-    res.status(200).json({ message: "Engineer record deleted successfully" });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
